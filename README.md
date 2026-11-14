@@ -11,16 +11,9 @@ npm run dev
 
 ## Cloudflare setup
 
-Create the R2 bucket:
+Set the Discord bot API token if you want to use the authenticated bot endpoints:
 
 ```bash
-npx wrangler r2 bucket create polaris-games
-```
-
-Set the upload secret and Discord bot API token:
-
-```bash
-npx wrangler secret put GAME_UPLOAD_TOKEN
 npx wrangler secret put DISCORD_API_TOKEN
 ```
 
@@ -30,6 +23,8 @@ Deploy:
 npm run deploy
 ```
 
+R2 storage is optional and is not required to deploy Polaris. Until storage is configured, `GET /api/shared-games` returns an empty list with `storageConfigured: false`, and uploads return HTTP 503.
+
 ## API routes
 
 - `GET /api` — API index
@@ -37,8 +32,8 @@ npm run deploy
 - `GET /api/status` — service status and deployment build ID
 - `GET /api/version` — version metadata
 - `GET /api/games` — public game catalogue
-- `GET /api/shared-games` — list games stored in R2
-- `POST /api/shared-games` — upload an HTML game; requires `X-Upload-Token`
+- `GET /api/shared-games` — list shared games when optional storage is configured
+- `POST /api/shared-games` — upload an HTML game when optional storage and `GAME_UPLOAD_TOKEN` are configured
 - `GET /api/stats` — usage statistics
 - `GET /api/discord-presence` — presence endpoint placeholder
 
@@ -60,7 +55,7 @@ const data = await response.json();
 console.log(data);
 ```
 
-Keep both secrets server-side. Never put them in browser JavaScript or commit them to GitHub.
+Keep the token server-side. Never put it in browser JavaScript or commit it to GitHub.
 
 ## Pages
 
