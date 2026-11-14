@@ -17,10 +17,11 @@ Create the R2 bucket:
 npx wrangler r2 bucket create polaris-games
 ```
 
-Set the upload secret:
+Set the upload secret and Discord bot API token:
 
 ```bash
 npx wrangler secret put GAME_UPLOAD_TOKEN
+npx wrangler secret put DISCORD_API_TOKEN
 ```
 
 Deploy:
@@ -41,10 +42,28 @@ npm run deploy
 - `GET /api/stats` — usage statistics
 - `GET /api/discord-presence` — presence endpoint placeholder
 
-Keep `GAME_UPLOAD_TOKEN` server-side. Never expose it in browser JavaScript.
+### Discord bot endpoints
+
+These endpoints require `Authorization: Bearer YOUR_DISCORD_API_TOKEN`:
+
+- `GET /api/bot/status`
+- `GET /api/bot/games`
+- `GET /api/bot/stats`
+
+Example (Node.js):
+
+```js
+const response = await fetch("https://YOUR-POLARIS-DOMAIN/api/bot/status", {
+  headers: { Authorization: `Bearer ${process.env.POLARIS_API_TOKEN}` }
+});
+const data = await response.json();
+console.log(data);
+```
+
+Keep both secrets server-side. Never put them in browser JavaScript or commit them to GitHub.
 
 ## Pages
 
 Overview, Discover, My library, Toolkit, AI workspace, Changelog, Feedback and Settings.
 
-The initial game catalogue, statistics and Discord presence endpoints are placeholders until their backing data sources are connected. The personal library is currently browser-local.
+The initial game catalogue, statistics and Discord presence endpoints return starter values until their backing data sources are connected. The personal library is currently browser-local.
