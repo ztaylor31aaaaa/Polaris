@@ -17,18 +17,18 @@ const searchablePages=[["Discover","discover","Browse the game catalogue"],["My 
 function searchResults(q){const pages=searchablePages.filter(x=>(x[0]+" "+x[2]).toLowerCase().includes(q));const games=state.games.filter(g=>String(g.name||"").toLowerCase().includes(q)).slice(0,4);return [...pages.map(x=>({label:x[0],detail:x[2],href:"#"+x[1],icon:PAGE_ICONS[x[1]]})),...games.map(g=>({label:g.name,detail:g.category||"Game",href:"#discover",icon:"▣"}))].slice(0,7)}
 const GAME_DATA_URL="https://sme-library.global.ssl.fastly.net/data/games.json";
 function resolveGameUrl(src){
-  if(!src)return "";
-  try{
-    if(/^https?:\\/\\//i.test(src))return src;
-    if(src.startsWith("/"))return src;
-    return new URL(src,"https://sme-library.global.ssl.fastly.net/").href;
-  }catch{return ""}
+  if(typeof src!=="string"||!src.trim())return "";
+  src=src.trim();
+  if(/^https?:\\/\\//i.test(src)||src.startsWith("proxy"))return src;
+  if(src.startsWith("/"))src=src.slice(1);
+  src=src.replace(/^(apps|app)\\//i,"");
+  if(src.startsWith("slime/"))return window.location.origin+"/"+(src.endsWith("/")?src:src+"/");
+  const isDirectory=!src.endsWith("/")&&!src.includes("#")&&!src.includes("?")&&!src.includes(".");
+  return "https://sme-library.global.ssl.fastly.net/"+(isDirectory?src+"/":src);
 }
-function isHtmlGame(game){
+function isCatalogueGame(game){
   const src=String(game.src||game.url||"");
-  if(!src||!game.name)return false;
-  if(/(^|\\/)signin\\.html(?:[?#]|$)/i.test(src))return false;
-  return /\\.html?(?:[?#]|$)/i.test(src);
+  return Boolean(game&&game.name&&src&&!/(^|\\/)signin\\.html(?:[?#]|$)/i.test(src));
 }
 async function loadGameCatalogue(){
   const response=await fetch(GAME_DATA_URL+"?t="+Date.now(),{cache:"no-store"});
