@@ -68,3 +68,5 @@ body:after{width:360px;height:360px;right:5%;bottom:4%;background:#236c86;animat
 .section-heading-row .section-title{margin:0}
 @media(max-width:600px){.game-library-grid{grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px}}
 @media(prefers-reduced-motion:reduce){.game-tile,.game-tile-icon,.game-tile-name{transition:none}}
+
+.game-tile-image{width:72%;height:72%;object-fit:contain;border-radius:10px;transition:transform .22s ease,filter .22s ease}.game-tile:hover .game-tile-image{transform:translateY(-7px) scale(.94);filter:brightness(1.08)}
