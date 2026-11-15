@@ -35,7 +35,7 @@ async function loadGameCatalogue(){
   if(!response.ok)throw new Error("Game catalogue returned "+response.status);
   const data=await response.json();
   if(!Array.isArray(data))throw new Error("Game catalogue format was invalid");
-  return data.filter(isHtmlGame).map((game,index)=>({
+  return data.filter(isCatalogueGame).map((game,index)=>({
     id:game.id??index,
     name:String(game.name),
     description:String(game.description||game.category||"HTML game"),
