@@ -19,16 +19,16 @@ const GAME_DATA_URL="https://sme-library.global.ssl.fastly.net/data/games.json";
 function resolveGameUrl(src){
   if(typeof src!=="string"||!src.trim())return "";
   src=src.trim();
-  if(/^https?:\\/\\//i.test(src)||src.startsWith("proxy"))return src;
+  if(/^https?:\/\//i.test(src)||src.startsWith("proxy"))return src;
   if(src.startsWith("/"))src=src.slice(1);
-  src=src.replace(/^(apps|app)\\//i,"");
+  src=src.replace(/^(apps|app)\//i,"");
   if(src.startsWith("slime/"))return window.location.origin+"/"+(src.endsWith("/")?src:src+"/");
   const isDirectory=!src.endsWith("/")&&!src.includes("#")&&!src.includes("?")&&!src.includes(".");
   return "https://sme-library.global.ssl.fastly.net/"+(isDirectory?src+"/":src);
 }
 function isCatalogueGame(game){
   const src=String(game.src||game.url||"");
-  return Boolean(game&&game.name&&src&&!/(^|\\/)signin\\.html(?:[?#]|$)/i.test(src));
+  return Boolean(game&&game.name&&src&&!/(^|\/)signin\.html(?:[?#]|$)/i.test(src));
 }
 async function loadGameCatalogue(){
   const response=await fetch(GAME_DATA_URL+"?t="+Date.now(),{cache:"no-store"});
@@ -55,7 +55,7 @@ async function discover(){
   const seen=new Set(catalogue.map(g=>g.href));
   const games=[...catalogue,...localGames.filter(g=>!seen.has(g.href))];
   const tiles=games.map(g=>{
-    const image=g.image?'<img class="game-tile-image" src="'+esc(/^https?:\\/\\//i.test(g.image)?g.image:"https://sme-library.global.ssl.fastly.net/data/app-icons/"+String(g.image).replace(/^\\/?(?:data\\/)?app-icons\\//i,"").replace(/^appicon\\//i,""))+'" alt="" loading="lazy">':'<span class="game-tile-icon">'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';
+    const image=g.image?'<img class="game-tile-image" src="'+esc(/^https?:\/\//i.test(g.image)?g.image:"https://sme-library.global.ssl.fastly.net/data/app-icons/"+String(g.image).replace(/^\/?(?:data\/)?app-icons\//i,"").replace(/^appicon\//i,""))+'" alt="" loading="lazy">':'<span class="game-tile-icon">'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';
     return '<a class="game-tile" data-game-search="'+esc((g.name+" "+g.description+" "+g.category).toLowerCase())+'" href="'+esc(g.href)+'" target="_self" aria-label="'+esc(g.name)+'">'+image+'<span class="game-tile-name">'+esc(g.name)+'</span></a>';
   }).join("");
   state.games=games.map(g=>({name:g.name,category:g.category,url:g.href,description:g.description}));
