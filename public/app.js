@@ -15,7 +15,57 @@ function navigate(){const page=location.hash.slice(1)||"home",key=PAGE_NAMES[pag
 async function home(){let status={status:"Checking"},stats={totalPlays:0},games={games:[]};try{[status,stats,games]=await Promise.all([api("/api/status"),api("/api/stats"),api("/api/games")])}catch{}state.games=games.games||[];const saved=readLibrary();return '<div class="home-page"><section class="home-hero"><h1 class="home-brand">polaris</h1><p class="home-tagline">your space, your tools, your games.</p><form class="home-search-wrap" id="home-search-form" autocomplete="off"><span class="search-symbol">⌕</span><input class="home-search" id="home-search" placeholder="Search Polaris or jump to a page…" aria-label="Search Polaris"><button class="search-submit" aria-label="Search">→</button><div class="search-results" id="search-results" hidden></div></form><div class="shortcut-row">'+shortcut("discover","⌕","Discover")+shortcut("library","▦","Library")+shortcut("toolkit","⌘","Toolkit")+shortcut("ai","✧","AI Workspace")+shortcut("feedback","✉","Feedback")+shortcut("settings","⚙","Settings")+'</div><div class="home-meta"><span class="meta-chip">● <strong>'+esc(status.status||"Online")+'</strong> · Polaris API</span><span class="meta-chip">▦ <strong>'+saved.length+'</strong> saved games</span><span class="meta-chip">↗ <strong>'+Number(stats.totalPlays||0)+'</strong> plays tracked</span></div><div class="clock-card"><div class="clock-time" id="clock-time">--:--</div><div class="clock-date" id="clock-date">Loading date…</div></div></section><section class="home-lower"><div class="home-widget"><div class="widget-head"><h2>Recently added</h2><a href="#library">Open library ↗</a></div>'+(saved.length?saved.slice(-3).reverse().map(g=>'<div class="recent-item"><span class="recent-icon">▣</span><strong>'+esc(g.name)+'</strong><small>Personal library</small></div>').join(""):'<div class="widget-empty">Your library is empty. Import an HTML game through Toolkit and it will appear here.</div>')+'</div><div class="home-widget"><div class="widget-head"><h2>Polaris services</h2><a href="#changelog">What’s new ↗</a></div><div class="recent-item"><span class="recent-icon">✦</span><strong>Core application</strong><small>'+esc(status.version||"v0.1.0")+'</small></div><div class="recent-item"><span class="recent-icon">⌘</span><strong>Game toolkit</strong><small>Local imports ready</small></div><div class="recent-item"><span class="recent-icon">✧</span><strong>AI workspace</strong><small>Setup pending</small></div></div></section></div>'}
 const searchablePages=[["Discover","discover","Browse the game catalogue"],["My library","library","Your saved games"],["Toolkit","toolkit","Import HTML games"],["AI workspace","ai","AI providers and tools"],["Changelog","changelog","Latest Polaris updates"],["Feedback","feedback","Send feedback"],["Settings","settings","Application preferences"]];
 function searchResults(q){const pages=searchablePages.filter(x=>(x[0]+" "+x[2]).toLowerCase().includes(q));const games=state.games.filter(g=>String(g.name||"").toLowerCase().includes(q)).slice(0,4);return [...pages.map(x=>({label:x[0],detail:x[2],href:"#"+x[1],icon:PAGE_ICONS[x[1]]})),...games.map(g=>({label:g.name,detail:g.category||"Game",href:"#discover",icon:"▣"}))].slice(0,7)}
-async function discover(){const data=await api("/api/games");state.games=data.games||[];const snubbyGames=[{name:"Locked Quiz",description:"Launch the Locked Quiz game.",category:"Snubby game",href:"/locked-quiz.html",icon:"LQ"},{name:"Math Lesson 1",description:"Open Math Lesson 1.",category:"Snubby game",href:"/games/snubby/snubby/mathlesson1.html",icon:"M1"}];const tiles=snubbyGames.map(g=>'<a class="game-tile" data-game-search="'+esc((g.name+" "+g.description).toLowerCase())+'" href="'+g.href+'"><span class="game-tile-icon">'+g.icon+'</span><span class="game-tile-name">'+esc(g.name)+'</span></a>').join("");const catalogue=state.games.length?state.games.map(g=>'<a class="game-tile" data-game-search="'+esc((g.name+" "+(g.description||"")).toLowerCase())+'" href="'+esc(g.url||"#")+'"><span class="game-tile-icon">'+esc((g.name||"G").slice(0,2).toUpperCase())+'</span><span class="game-tile-name">'+esc(g.name)+'</span></a>').join(""):"";return header("Discover","Browse and launch games from the Polaris library.")+'<section class="section"><div class="section-heading-row"><h2 class="section-title">Snubby games</h2><span class="muted">2 games</span></div><div class="game-library-grid" id="snubby-game-grid">'+tiles+'</div></section><section class="section"><div class="section-heading-row"><h2 class="section-title">Game catalogue</h2></div><div class="toolbar"><input class="input" id="game-search" placeholder="Search games…" aria-label="Search games"></div><div class="game-library-grid" id="game-grid">'+(catalogue||'<div class="empty-state">No additional games have been added yet.</div>')+'</div></section>'}
+const GAME_DATA_URL="https://sme-library.global.ssl.fastly.net/data/games.json";
+function resolveGameUrl(src){
+  if(!src)return "";
+  try{
+    if(/^https?:\\/\\//i.test(src))return src;
+    if(src.startsWith("/"))return src;
+    return new URL(src,"https://sme-library.global.ssl.fastly.net/").href;
+  }catch{return ""}
+}
+function isHtmlGame(game){
+  const src=String(game.src||game.url||"");
+  if(!src||!game.name)return false;
+  if(/(^|\\/)signin\\.html(?:[?#]|$)/i.test(src))return false;
+  return /\\.html?(?:[?#]|$)/i.test(src);
+}
+async function loadGameCatalogue(){
+  const response=await fetch(GAME_DATA_URL+"?t="+Date.now(),{cache:"no-store"});
+  if(!response.ok)throw new Error("Game catalogue returned "+response.status);
+  const data=await response.json();
+  if(!Array.isArray(data))throw new Error("Game catalogue format was invalid");
+  return data.filter(isHtmlGame).map((game,index)=>({
+    id:game.id??index,
+    name:String(game.name),
+    description:String(game.description||game.category||"HTML game"),
+    category:String(game.category||game.type||"Game"),
+    image:game.image||game.cover||game.thumb||"",
+    href:resolveGameUrl(game.src||game.url)
+  })).filter(game=>game.href);
+}
+async function discover(){
+  let catalogue=[];
+  let catalogueError="";
+  try{catalogue=await loadGameCatalogue()}catch(error){catalogueError=error.message}
+  const localGames=[
+    {name:"Locked Quiz",description:"Launch the Locked Quiz game.",category:"Snubby game",href:"/locked-quiz.html",icon:"LQ"},
+    {name:"Math Lesson 1",description:"Open Math Lesson 1.",category:"Snubby game",href:"/games/snubby/snubby/mathlesson1.html",icon:"M1"}
+  ];
+  const seen=new Set(catalogue.map(g=>g.href));
+  const games=[...catalogue,...localGames.filter(g=>!seen.has(g.href))];
+  const tiles=games.map(g=>{
+    const image=g.image?'<img class="game-tile-image" src="'+esc(/^https?:\\/\\//i.test(g.image)?g.image:"https://sme-library.global.ssl.fastly.net/data/app-icons/"+String(g.image).replace(/^\\/?(?:data\\/)?app-icons\\//i,"").replace(/^appicon\\//i,""))+'" alt="" loading="lazy">':'<span class="game-tile-icon">'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';
+    return '<a class="game-tile" data-game-search="'+esc((g.name+" "+g.description+" "+g.category).toLowerCase())+'" href="'+esc(g.href)+'" target="_self" aria-label="'+esc(g.name)+'">'+image+'<span class="game-tile-name">'+esc(g.name)+'</span></a>';
+  }).join("");
+  state.games=games.map(g=>({name:g.name,category:g.category,url:g.href,description:g.description}));
+  return header("Discover","Browse and launch games from the Polaris library.")+
+    '<section class="section"><div class="section-heading-row"><h2 class="section-title">Game library</h2><span class="muted">'+games.length+' games</span></div>'+
+    '<div class="toolbar"><input class="input" id="game-search" placeholder="Search games…" aria-label="Search games"></div>'+
+    '<div class="game-library-grid" id="snubby-game-grid">'+(tiles||'<div class="empty-state">No HTML games were found in the catalogue.</div>')+'</div>'+
+    (catalogueError?'<p class="muted">Online catalogue could not load ('+esc(catalogueError)+'). Showing locally included games.</p>':'')+
+    '</section>';
+}
 async function library(){const items=readLibrary();return header("My library","Your personal collection of imported games.")+'<div class="panel"><p class="muted">Personal imports are stored in this browser. They are not published or shared with other users.</p></div><section class="section"><div class="list">'+(items.length?items.map(x=>'<div class="list-row"><div><strong>'+esc(x.name)+'</strong><br><small>'+esc(x.filename)+'</small></div><small>Added '+new Date(x.addedAt).toLocaleDateString()+'</small></div>').join(""):'<div class="empty-state">Your library is empty. Import a game using the Toolkit.</div>')+'</div></section>'}
 async function toolkit(){return header("Toolkit","Import HTML games into your personal library and manage your local files.")+'<div class="panel"><h2 class="section-title">Import a game</h2><form id="import-form" class="form-stack"><label class="form-label">Game name<input class="input" name="name" required maxlength="80" placeholder="Enter a game name"></label><label class="form-label">HTML game file<input class="input" name="file" type="file" accept=".html,.htm,text/html" required></label><button class="button">Import to my library</button></form><p class="muted">Local imports are limited to 20 MB and stay in this browser.</p></div><section class="section"><h2 class="section-title">Shared games</h2><div id="published-games" class="empty-state">Checking storage availability…</div></section>'}
 async function ai(){return header("AI workspace","A dedicated place for connected AI providers and tools.")+'<div class="panel"><h2 class="section-title">AI services</h2><p class="muted">The workspace is scaffolded. Provider connections, model selection and secure server-side API key handling are planned as a separate feature. API keys must never be stored in public frontend code.</p></div>'}
