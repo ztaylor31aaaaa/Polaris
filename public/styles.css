@@ -87,3 +87,14 @@ body:after{width:360px;height:360px;right:5%;bottom:4%;background:#236c86;animat
 .game-player-note{margin:0;color:#75869b;font-size:10px}
 .game-tile{padding:0;font:inherit;cursor:pointer}
 @media(max-width:700px){.game-player{min-height:calc(100vh - 130px)}.game-frame-wrap,.game-frame{min-height:calc(100vh - 250px)}.game-player-back span{display:none}}
+
+
+/* Full-viewport game view: use the space directly beneath Polaris' browser bar. */
+.main-area:has(.game-player) .page-content{width:100%;max-width:none;min-height:0;height:calc(100vh - 58px);margin:0;padding:8px 18px 10px;flex:1;display:flex;flex-direction:column}
+.main-area:has(.game-player) .footer{display:none}
+.game-player{width:100%;height:100%;min-height:0;flex:1;display:flex;flex-direction:column;gap:8px}
+.game-player-toolbar{flex:0 0 48px;min-height:48px;padding:6px 10px}
+.game-frame-wrap{width:100%;height:100%;min-height:0;flex:1;overflow:hidden;border-radius:11px}
+.game-frame{display:block;width:100%;height:100%;min-height:0;border:0}
+.game-player-note{flex:0 0 auto;margin:0;font-size:9px;line-height:12px}
+@media(max-width:780px){.main-area:has(.game-player) .page-content{height:calc(100vh - 58px);padding:6px 8px 8px}.game-frame-wrap,.game-frame{min-height:0}}
