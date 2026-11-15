@@ -53,3 +53,18 @@ body:after{width:360px;height:360px;right:5%;bottom:4%;background:#236c86;animat
 .toast{animation:toast-in .25s cubic-bezier(.2,.8,.2,1) both}
 @keyframes toast-in{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal-item{opacity:1;transform:none}}
+
+/* Square game tiles inspired by the Solaris library layout */
+.game-library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:14px}
+.game-tile{position:relative;display:flex;aspect-ratio:1/1;min-width:0;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--border,#2b3b50);border-radius:13px;background:linear-gradient(145deg,#17283b,#101a28);color:var(--text);text-decoration:none;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.game-tile:hover{transform:translateY(-4px) scale(1.025);border-color:#68b7ff;box-shadow:0 12px 28px #0005}
+.game-tile-icon{display:grid;width:64px;height:64px;place-items:center;border:1px solid #6aaee655;border-radius:17px;background:linear-gradient(145deg,#234b70,#172c45);color:#d9efff;font-size:21px;font-weight:800;letter-spacing:-1px;transition:transform .2s ease,opacity .2s ease}
+.game-tile-name{position:absolute;inset:auto 0 0;padding:25px 9px 10px;background:linear-gradient(transparent,#080f19eF);color:#f2f7ff;text-align:center;font-size:12px;font-weight:650;opacity:0;transform:translateY(8px);transition:opacity .2s ease,transform .2s ease}
+.game-tile:hover .game-tile-name,.game-tile:focus-visible .game-tile-name{opacity:1;transform:translateY(0)}
+.game-tile:hover .game-tile-icon{transform:translateY(-8px) scale(.94)}
+.game-tile:focus-visible{outline:2px solid #68b7ff;outline-offset:3px}
+.game-tile[hidden]{display:none!important}
+.section-heading-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+.section-heading-row .section-title{margin:0}
+@media(max-width:600px){.game-library-grid{grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px}}
+@media(prefers-reduced-motion:reduce){.game-tile,.game-tile-icon,.game-tile-name{transition:none}}
