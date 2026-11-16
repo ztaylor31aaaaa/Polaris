@@ -97,7 +97,7 @@ async function ensureScramjet(){
  const controller=new ScramjetController({files:{wasm:"/scram/scramjet.wasm.wasm",all:"/scram/scramjet.all.js",sync:"/scram/scramjet.sync.js"}});
  await controller.init();
  const connection=new window.BareMux.BareMuxConnection("/baremux/worker.js");
- await connection.setTransport("/epoxy/index.mjs",[{wisp:"wss://wisp.mercurywork.shop/"}]);
+ await connection.setTransport("/epoxy/index.mjs",[{wisp:"wss://girlspreples.org/wi/"}]);
  state.scramjet=controller;
  state.bareMux=connection;
  state.scramjetReady=true;
