@@ -67,6 +67,16 @@ function renderGameViewer(rawUrl,name){
 }
 function searchResults(q){const pages=searchablePages.filter(x=>(x[0]+" "+x[2]).toLowerCase().includes(q));const games=state.games.filter(g=>String(g.name||"").toLowerCase().includes(q)).slice(0,4);return [...pages.map(x=>({label:x[0],detail:x[2],href:"#"+x[1],icon:PAGE_ICONS[x[1]]})),...games.map(g=>({label:g.name,detail:g.category||"Game",href:"#games",icon:"🎮"}))].slice(0,7)}
 const GAME_DATA_URL="https://sme-library.global.ssl.fastly.net/data/games.json";
+const COMMUNITY_GAMES_API="/api/community-games";
+function communityAssetPath(path){return "/community-games/"+String(path||"").split("/").filter(Boolean).join("/")}
+async function loadCommunityGameCatalogue(){
+ const response=await fetch(COMMUNITY_GAMES_API,{cache:"no-store"});
+ if(!response.ok)throw new Error("Polaris Games catalogue returned "+response.status);
+ const data=await response.json();
+ if(!Array.isArray(data))throw new Error("Polaris Games catalogue format was invalid");
+ return data.filter(game=>game&&typeof game.id==="string"&&typeof game.name==="string"&&typeof game.src==="string"&&game.src.startsWith("games/")&&game.src.endsWith("/index.html")&&!game.src.split("/").includes("..")&&!game.src.includes("\\")).map(game=>({id:"community-"+game.id,name:game.name,description:String(game.description||"Community game"),category:String(game.category||"Community"),image:game.image?communityAssetPath(game.image):"",href:communityAssetPath(game.src),icon:game.name.slice(0,2).toUpperCase(),source:"Polaris Games"}));
+}
+
 function resolveGameUrl(src){
   if(typeof src!=="string"||!src.trim())return "";
   src=src.trim();
@@ -96,12 +106,15 @@ async function loadGameCatalogue(){
   })).filter(game=>game.href);
 }
 async function games(){
- let catalogue=[],catalogueError="";try{catalogue=await loadGameCatalogue()}catch(error){catalogueError=error.message}
- const local=[{name:"Locked Quiz",description:"Launch the Locked Quiz game.",category:"Polaris",href:"/locked-quiz.html",icon:"LQ"},{name:"Math Lesson 1",description:"Open Math Lesson 1.",category:"Polaris",href:"/games/snubby/snubby/mathlesson1.html",icon:"M1"}],seen=new Set(catalogue.map(g=>g.href)),all=[...catalogue,...local.filter(g=>!seen.has(g.href))];
- const tiles=all.map(g=>{const image=g.image?'<img class="game-tile-image" src="'+esc(/^https?:\/\//i.test(g.image)?g.image:"https://sme-library.global.ssl.fastly.net/data/app-icons/"+String(g.image).replace(/^\/?(?:data\/)?app-icons\//i,"").replace(/^appicon\//i,""))+'" alt="" loading="lazy">':'<span class="game-tile-icon">'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';return '<button class="game-tile" type="button" data-game-url="'+esc(g.href)+'" data-game-name="'+esc(g.name)+'" data-game-search="'+esc((g.name+" "+g.description+" "+g.category).toLowerCase())+'">'+image+'<span class="game-tile-name">'+esc(g.name)+'</span></button>'}).join("");
+ let catalogue=[],community=[],catalogueError="";
+ try{catalogue=await loadGameCatalogue()}catch(error){catalogueError=error.message}
+ try{community=await loadCommunityGameCatalogue()}catch(error){catalogueError+=(catalogueError?" · ":"")+error.message}
+ const local=[{name:"Locked Quiz",description:"Launch the Locked Quiz game.",category:"Polaris",href:"/locked-quiz.html",icon:"LQ"},{name:"Math Lesson 1",description:"Open Math Lesson 1.",category:"Polaris",href:"/games/snubby/snubby/mathlesson1.html",icon:"M1"}];
+ const seen=new Set(catalogue.map(g=>g.href)),localGames=local.filter(g=>!seen.has(g.href)),all=[...catalogue,...localGames,...community];
+ const tiles=all.map(g=>{const image=g.image?'<img class="game-tile-image" src="'+esc(g.image.startsWith("http")?g.image:g.image.startsWith("/community-games/")?g.image:"https://sme-library.global.ssl.fastly.net/data/app-icons/"+g.image)+'" alt="" loading="lazy">':'<span class="game-tile-icon">'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';return '<button class="game-tile" type="button" data-game-url="'+esc(g.href)+'" data-game-name="'+esc(g.name)+'" data-game-search="'+esc((g.name+" "+g.description+" "+g.category).toLowerCase())+'">'+image+'<span class="game-tile-name">'+esc(g.name)+'</span></button>'}).join("");
  state.games=all.map(g=>({name:g.name,category:g.category,url:g.href,description:g.description}));
  const saved=readLibrary(),savedMarkup=saved.map(g=>'<div class="library-card"><div class="library-card-icon">▣</div><div class="library-card-copy"><strong>'+esc(g.name)+'</strong><small>'+esc(g.filename)+' · Added '+new Date(g.addedAt).toLocaleDateString()+'</small></div><button class="button button-small" data-launch-local="'+esc(g.id)+'">Open</button></div>').join("");
- return header("Games","Explore the catalogue or manage games you have imported.")+'<div class="games-switcher"><button class="games-switch active" data-games-view="catalogue">Discover games <span>'+all.length+'</span></button><button class="games-switch" data-games-view="library">My library <span>'+saved.length+'</span></button></div><section class="games-view" id="games-catalogue"><div class="toolbar"><input class="input" id="game-search" placeholder="Search games…" aria-label="Search games"></div><div class="game-library-grid" id="snubby-game-grid">'+(tiles||'<div class="empty-state">No games were found in the catalogue.</div>')+'</div>'+(catalogueError?'<p class="muted">Online catalogue could not load ('+esc(catalogueError)+'). Showing locally included games.</p>':'')+'</section><section class="games-view" id="games-library" hidden><div class="library-toolbar"><p class="muted">Games imported on this device are private to this browser.</p><a class="button button-small" href="#tools">Import a game</a></div><div class="library-list">'+(savedMarkup||'<div class="empty-state">Your library is empty. Import an HTML game from Tools.</div>')+'</div></section>';
+ return header("Games","Explore the catalogue or manage games you have imported.")+'<div class="games-switcher"><button class="games-switch active" data-games-view="catalogue">Discover games <span>'+all.length+'</span></button><button class="games-switch" data-games-view="library">My library <span>'+saved.length+'</span></button></div><section class="games-view" id="games-catalogue"><div class="toolbar"><input class="input" id="game-search" placeholder="Search games…" aria-label="Search games"></div><div class="game-library-grid" id="snubby-game-grid">'+(tiles||'<div class="empty-state">No games were found in the catalogue.</div>')+'</div>'+(catalogueError?'<p class="muted">A game catalogue could not load ('+esc(catalogueError)+'). Other available games are still shown.</p>':'')+'</section><section class="games-view" id="games-library" hidden><div class="library-toolbar"><p class="muted">Games imported on this device are private to this browser.</p><a class="button button-small" href="#tools">Import a game</a></div><div class="library-list">'+(savedMarkup||'<div class="empty-state">Your library is empty. Import an HTML game from Tools.</div>')+'</div></section>';
 }
 function normaliseBrowseInput(value){
  const raw=String(value||"").trim();if(!raw)return "";
