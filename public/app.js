@@ -80,9 +80,9 @@ async function discover(){
 
 function normaliseBrowseInput(value){
  const raw=String(value||"").trim();if(!raw)return "";
- if(/^https?:\\/\\//i.test(raw))return raw;
- if(/^localhost(?::\\d+)?(?:\\/|$)/i.test(raw))return "http://"+raw;
- if(/^[a-z0-9.-]+\\.[a-z]{2,}(?::\\d+)?(?:\\/.*)?$/i.test(raw))return "https://"+raw;
+ if(/^https?:\/\//i.test(raw))return raw;
+ if(/^localhost(?::\d+)?(?:\/|$)/i.test(raw))return "http://"+raw;
+ if(/^[a-z0-9.-]+\.[a-z]{2,}(?::\d+)?(?:\/.*)?$/i.test(raw))return "https://"+raw;
  return "https://duckduckgo.com/?q="+encodeURIComponent(raw);
 }
 async function browser(){return header("Web browser","Browse permitted websites inside Polaris. Some websites prevent iframe embedding.")+
