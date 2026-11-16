@@ -7,13 +7,13 @@ function authorised(request,token){const supplied=request.headers.get("Authoriza
 async function route(request,env){const u=new URL(request.url),p=u.pathname;if(request.method==="OPTIONS")return new Response(null,{status:204,headers:HEADERS});
 if(p==="/api/ai/models"||p==="/api/ai/chat"){
  if(request.method!==(p.endsWith("/models")?"POST":"POST"))return reply({error:"Method not allowed."},405);
- const key=request.headers.get("Authorization")?.replace(/^Bearer\\s+/i,"");
+ const key=request.headers.get("Authorization")?.replace(/^Bearer\s+/i,"");
  if(!key)return reply({error:"An API key is required."},401);
  let body;try{body=await request.json()}catch{return reply({error:"Invalid JSON request."},400)}
  let base;try{base=new URL(String(body.baseUrl||""))}catch{return reply({error:"Invalid provider endpoint."},400)}
  const allowed=["api.openai.com","generativelanguage.googleapis.com","integrate.api.nvidia.com"];
  if(base.protocol!=="https:"||!allowed.includes(base.hostname)||base.username||base.password)return reply({error:"This provider endpoint is not supported by the Polaris relay. Use OpenAI, Gemini, or NVIDIA's official API endpoint."},400);
- const endpoint=new URL((p.endsWith("/models")?"models":"chat/completions"),base.href.replace(/\\/$/,"")+"/");
+ const endpoint=new URL((p.endsWith("/models")?"models":"chat/completions"),base.href.replace(/\/$/,"")+"/");
  const headers={Authorization:"Bearer "+key};
  const init={method:p.endsWith("/models")?"GET":"POST",headers};
  if(init.method==="POST"){headers["Content-Type"]="application/json";const {baseUrl,...payload}=body;init.body=JSON.stringify(payload)}
