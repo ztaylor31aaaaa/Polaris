@@ -174,3 +174,43 @@ body:after{width:360px;height:360px;right:5%;bottom:4%;background:#236c86;animat
 .web-frame-loading.load-error strong{color:#e6f2ff;font-size:14px}
 .web-frame-loading.load-error span{max-width:560px;color:#a7b8cc;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
 .web-frame-loading.load-error .button{margin-top:4px}
+
+/* Polaris tabbed browser chrome */
+.browser-chrome{position:sticky;top:0;z-index:25;background:#090e17f2;border-bottom:1px solid #26374a;backdrop-filter:blur(20px);box-shadow:0 5px 24px #0003}
+.browser-tabs-row{height:39px;display:flex;align-items:stretch;gap:12px;padding:5px 10px 0 12px;background:#0c121c}
+.browser-tab-strip{display:flex;align-items:stretch;gap:5px;min-width:0;flex:1;overflow-x:auto;scrollbar-width:thin}
+.browser-tab{position:relative;display:flex;align-items:center;gap:8px;min-width:110px;max-width:210px;height:34px;padding:0 10px;border:1px solid transparent;border-radius:9px 9px 0 0;background:#111b29;color:#91a4ba;font-size:11px;cursor:pointer;transition:background .16s,border-color .16s,color .16s}
+.browser-tab:hover{background:#17263a;color:#dcecff}
+.browser-tab.active{background:#17283c;border-color:#2c4965;border-bottom-color:#17283c;color:#e9f5ff}
+.browser-tab-favicon{display:grid;place-items:center;flex:0 0 17px;width:17px;height:17px;border-radius:5px;background:#244a6b;color:#a8dcff;font-size:10px}
+.browser-tab-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:left}
+.browser-tab-close{display:grid;place-items:center;width:18px;height:18px;border-radius:5px;color:#7f91a6;font-size:15px;line-height:1}
+.browser-tab-close:hover{background:#34465c;color:#fff}
+.browser-new-tab,.chrome-menu{width:28px;height:28px;flex:0 0 28px;border:0;border-radius:8px;background:transparent;color:#9eb5cd;font-size:19px;cursor:pointer}
+.browser-new-tab:hover,.chrome-menu:hover{background:#1b3046;color:#dff2ff}
+.browser-window-actions{display:flex;align-items:center;gap:9px}
+.browserbar{position:relative;height:49px;flex-basis:49px;padding:6px 12px;gap:9px;background:#0d1521;border-bottom:0}
+.browserbar .addressbar-shell{height:35px;border-radius:18px;background:#121e2d;border-color:#293d54;padding:0 14px}
+.browserbar .addressbar-shell:focus-within{border-color:#62baff;box-shadow:0 0 0 3px #5eaeef19}
+.browserbar .web-quick-actions button{width:31px;height:31px;border:0;border-radius:50%;background:transparent}
+.browserbar .web-quick-actions button:hover{background:#1c3046}
+.browserbar .address-prefix{color:#8fcfff}
+.settings-layout{display:grid;grid-template-columns:minmax(180px,230px) minmax(0,1fr);gap:16px;align-items:start}
+.settings-categories{display:grid;gap:6px}
+.settings-category{display:grid;gap:4px;padding:12px 13px;text-align:left;border:1px solid transparent;border-radius:9px;background:transparent;color:#dce8f6;cursor:pointer}
+.settings-category:hover{background:#142237}
+.settings-category.active{border-color:#345778;background:#172b41;box-shadow:inset 3px 0 #71c5ff}
+.settings-category strong{font-size:12px;font-weight:600}
+.settings-category small,.setting-row small{color:#8496ac;font-size:10px;line-height:1.5}
+.settings-section-heading{margin-bottom:14px;padding-bottom:13px;border-bottom:1px solid #ffffff12}
+.settings-section-heading h2{margin:0 0 5px;font-size:15px}
+.settings-section-heading p{margin:0;color:#8b9cb1;font-size:11px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 2px;border-bottom:1px solid #ffffff0c}
+.setting-row>div{display:grid;gap:4px;min-width:0}
+.setting-row strong{font-size:12px}
+.setting-row .select{width:auto;min-width:145px}
+.setting-control[type=checkbox]{width:17px;height:17px;accent-color:#62baff}
+.setting-pill{padding:6px 9px;border:1px solid #34536e;border-radius:20px;background:#14263a;color:#9ed5ff;font-size:10px;white-space:nowrap}
+.reduce-motion *, .reduce-motion *:before,.reduce-motion *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+@media(max-width:780px){.browser-tabs-row{padding-left:6px;gap:5px}.browser-tab{min-width:85px;max-width:145px;padding:0 7px}.browser-window-actions .connection-label{display:none}.browserbar{height:48px;flex-basis:48px;padding:6px}.browserbar .address-prefix{display:none}.settings-layout{grid-template-columns:1fr}.settings-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-category{padding:9px}.setting-row{align-items:flex-start}.browser-tab-title{font-size:10px}}
+@media(max-width:420px){.browser-tabs-row{height:36px}.browser-tab{min-width:72px;max-width:112px;gap:5px}.browser-tab-favicon{display:none}.browserbar .web-quick-actions button{width:27px;height:29px}.browserbar .addressbar-shell{padding:0 9px}.browserbar .address-prefix{display:none}}
