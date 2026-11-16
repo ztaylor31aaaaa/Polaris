@@ -138,3 +138,28 @@ body:after{width:360px;height:360px;right:5%;bottom:4%;background:#236c86;animat
  .main-area:has(.polaris-browser.is-open) .page-content{height:calc(100vh - 58px);padding:0}
  .polaris-browser.is-open .web-address-form{flex-basis:48px;min-height:48px}
 }
+
+
+/* Unified polaris://web omnibox and compact browser quick actions */
+.browser-home,.tab-chip{display:none!important}
+.addressbar-shell{height:36px;min-width:0;flex:1;display:flex;align-items:center;gap:9px;padding:0 12px;border:1px solid #ffffff16;border-radius:11px;background:#111923;color:#91a2b7;transition:border-color .18s,box-shadow .18s}
+.addressbar-shell:focus-within{border-color:#5d9bce;box-shadow:0 0 0 3px #68b7ff16}
+.address-prefix{flex:0 0 auto;color:#a8d8ff;font-size:11px;font-weight:700;letter-spacing:.01em}
+.global-address-form{min-width:0;flex:1;height:100%;display:flex;align-items:center}
+.global-address-form input{width:100%;height:100%;min-width:0;border:0;outline:0;background:transparent;color:#e4edf8;font:12px 'DM Sans',sans-serif}
+.global-address-form input::placeholder{color:#72839a}
+.web-quick-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.web-quick-actions button{width:32px;height:32px;border:1px solid #ffffff12;border-radius:9px;background:#141e2a;color:#b8cce0;font-size:17px;cursor:pointer;transition:background .16s,border-color .16s,transform .16s}
+.web-quick-actions button:hover{background:#20364c;border-color:#4a789f;transform:translateY(-1px)}
+.polaris-browser.browser-start{height:100%;min-height:0}
+.polaris-browser.browser-start .web-browser-empty{height:100%;min-height:0;border:0;border-radius:0}
+.polaris-browser.is-open{height:100%;min-height:0;gap:0;overflow:hidden}
+.polaris-browser.is-open .web-browser-frame-wrap{flex:1 1 auto;width:100%;height:100%;min-height:0;border:0;border-radius:0}
+.polaris-browser.is-open .web-browser-frame{width:100%;height:100%;min-height:0}
+.polaris-browser.is-open .web-browser-hint{flex:0 0 auto;padding:5px 12px;background:#0d141e}
+.web-frame-loading.load-timeout{gap:16px;padding:24px;text-align:center}
+.web-frame-loading.load-timeout span:last-of-type{max-width:440px;line-height:1.6}
+.main-area:has(.polaris-browser.is-open){height:100vh;min-height:100vh;overflow:hidden}
+.main-area:has(.polaris-browser.is-open) .page-content{width:100%;max-width:none;height:calc(100vh - 58px);min-height:0;flex:1;margin:0;padding:0;overflow:hidden}
+.main-area:has(.polaris-browser.is-open) .footer{display:none}
+@media(max-width:780px){.browserbar{gap:6px;padding:7px}.addressbar-shell{padding:0 8px;gap:6px}.address-prefix{font-size:10px}.web-quick-actions{gap:3px}.web-quick-actions button{width:29px;height:30px}.top-actions{gap:4px}}
