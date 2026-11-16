@@ -537,3 +537,32 @@ button,a,.panel,.content-card,.home-widget,.browser-tab{transition:transform .18
 :root[data-theme=custom] .home-brand,:root[data-theme=custom] .ai-richtext h1,:root[data-theme=custom] .ai-richtext h2,:root[data-theme=custom] .ai-richtext h3{color:var(--text)}
 
 .saved-pages-panel{max-width:1050px;padding:16px}.saved-pages-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.saved-pages-list{display:flex;flex-direction:column;gap:6px}.saved-page-row{display:flex;align-items:center;gap:10px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2,var(--panel))}.saved-page-icon{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:9px;background:#19334c;color:#b9dcff;font-size:17px}.saved-page-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}.saved-page-copy strong,.saved-page-copy small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.saved-page-copy strong{font-size:12px}.saved-page-copy small{font-size:10px;color:var(--muted)}.icon-button{width:30px;height:30px;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}.icon-button:hover{background:#422b35;color:#fff}.button-danger{border-color:#75404a;background:#472832;color:#ffdce1}.button-danger:disabled{opacity:.4;cursor:not-allowed}@media(max-width:600px){.saved-page-row{flex-wrap:wrap}.saved-page-copy{flex-basis:calc(100% - 50px)}.saved-pages-toolbar{align-items:flex-start;flex-direction:column}}
+
+/* Interaction polish and consistent contrast across themes */
+.browser-tab{isolation:isolate;position:relative;overflow:hidden;flex:0 1 210px;min-width:82px;outline:none;transition:background .2s ease,border-color .2s ease,color .2s ease,transform .2s ease,box-shadow .2s ease}
+.browser-tab::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:transparent;transition:background .2s ease}
+.browser-tab:hover{transform:translateY(-1px);background:color-mix(in srgb,var(--blue) 16%,#17263a);color:#fff;border-color:color-mix(in srgb,var(--blue) 40%,#2c4965)}
+.browser-tab.active,.browser-tab.active:hover,.browser-tab.active:focus-visible{background:color-mix(in srgb,var(--blue) 22%,#142235);border-color:color-mix(in srgb,var(--blue) 65%,#2c4965);border-bottom-color:color-mix(in srgb,var(--blue) 22%,#142235);color:#fff;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--blue) 35%,transparent),0 -2px 12px color-mix(in srgb,var(--blue) 12%,transparent);transform:none}
+.browser-tab.active::before{background:var(--blue)}
+.browser-tab.active .browser-tab-title,.browser-tab.active .browser-tab-favicon,.browser-tab.active .browser-tab-close{color:#fff}
+.browser-tab-close{position:relative;z-index:1;flex:0 0 18px}
+.browser-tab-close:hover{background:#8e3446;color:#fff}
+.browser-tab.pinned{flex:0 0 48px;min-width:48px;max-width:48px;justify-content:center;padding:0 6px}
+.browser-tab.pinned .browser-tab-title{display:none}
+.browser-tab.pinned .browser-tab-close{display:none}
+.browser-tab.pinned .browser-tab-favicon{background:color-mix(in srgb,var(--blue) 38%,#244a6b);color:#fff}
+.browser-tab-group-dot{width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.browser-tab-strip{scroll-behavior:smooth;overscroll-behavior-x:contain}
+.browser-tab:focus-visible,.browser-new-tab:focus-visible,.chrome-menu:focus-visible,.rail-link:focus-visible,button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.rail-link,.rail-home,.button,.content-card,.utility-card,.game-tile,.settings-category{transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease,color .2s ease}
+.content-card:hover,.utility-card:hover,.game-tile:hover{transform:translateY(-3px);box-shadow:0 12px 28px #0003}
+.toast{animation:polarisToastIn .24s cubic-bezier(.2,.8,.2,1) both}
+@keyframes polarisToastIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.page-heading{animation:polarisHeadingIn .35s ease both}
+@keyframes polarisHeadingIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.browser-tab-menu-panel,.polaris-context-menu,.search-results,.palette-backdrop{animation:polarisMenuIn .16s ease both;transform-origin:top left}
+@keyframes polarisMenuIn{from{opacity:0;transform:translateY(-5px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:760px){.browser-tab{min-width:74px;max-width:145px;padding:0 7px;gap:5px}.browser-tab.pinned{min-width:42px;max-width:42px;flex-basis:42px}.browser-window-actions .connection-label{display:none}}
+@media(hover:none){.browser-tab:hover,.content-card:hover,.utility-card:hover,.game-tile:hover{transform:none;box-shadow:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+:root.reduce-motion *, :root.reduce-motion *::before, :root.reduce-motion *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
