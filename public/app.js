@@ -132,7 +132,7 @@ function sortGameEntries(games,mode){
  });
 }
 function gameTilesMarkup(games){
- return games.map(g=>{const image=g.image?'<img class="game-tile-image" src="'+esc(g.image.startsWith("http")?g.image:g.image.startsWith("/community-games/")?g.image:"https://sme-library.global.ssl.fastly.net/data/app-icons/"+g.image)+'" alt="" loading="lazy">':'<span class="game-tile-icon">'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';return '<button class="game-tile" type="button" data-game-id="'+esc(g.id||g.href)+'" data-game-url="'+esc(g.href)+'" data-game-name="'+esc(g.name)+'" data-game-search="'+esc((g.name+" "+g.description+" "+g.category).toLowerCase())+'">'+image+'<span class="game-tile-name">'+esc(g.name)+'</span></button>'}).join("");
+ return games.map(g=>{const fallback='<span class="game-tile-icon game-tile-icon-fallback"'+(g.image?' hidden':'')+'>'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';const image=g.image?'<img class="game-tile-image" src="'+esc(g.image.startsWith("http")?g.image:g.image.startsWith("/community-games/")?g.image:"https://sme-library.global.ssl.fastly.net/data/app-icons/"+g.image)+'" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false">'+fallback:fallback;return '<button class="game-tile" type="button" data-game-id="'+esc(g.id||g.href)+'" data-game-url="'+esc(g.href)+'" data-game-name="'+esc(g.name)+'" data-game-search="'+esc((g.name+" "+g.description+" "+g.category).toLowerCase())+'">'+image+'<span class="game-tile-name">'+esc(g.name)+'</span></button>'}).join("");
 }
 async function games(){
  let catalogue=[],community=[],catalogueError="";
