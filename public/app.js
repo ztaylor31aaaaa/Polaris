@@ -56,15 +56,26 @@ async function home(){
 const searchablePages=[["Google Search","browser","Search Google or open a website"],["Games","games","Browse games and your personal library"],["Tools","tools","Import games and open utilities"],["AI","ai","Connect AI providers and chat"],["Bookmarks","bookmarks","Saved websites and favourites"],["History","history","Recently visited websites"],["Changelog","changelog","Latest Polaris updates"],["Feedback","feedback","Send feedback"],["Settings","settings","Application preferences"]];
 function renderGameViewer(rawUrl,name){
  let gameUrl;
- try{gameUrl=new URL(rawUrl,window.location.origin);if(!["http:","https:","blob:"].includes(gameUrl.protocol))throw Error("Unsupported game URL")}
- catch{root.innerHTML=header("Cannot open game","The game URL is invalid or unsupported.")+'<button class="button" id="return-discover">Back to Games</button>';document.querySelector("#return-discover").addEventListener("click",()=>location.hash="games");return}
+ try{
+  gameUrl=new URL(rawUrl,window.location.origin);
+  if(!["http:","https:","blob:"].includes(gameUrl.protocol))throw Error("Unsupported game URL");
+ }catch{
+  root.innerHTML=header("Cannot open game","The game URL is invalid or unsupported.")+'<button class="button" id="return-discover">Back to Games</button>';
+  document.querySelector("#return-discover").addEventListener("click",()=>location.hash="games");
+  return;
+ }
  root.classList.remove("page-enter");
- const isCommunityGame=gameUrl.origin===window.location.origin&&gameUrl.pathname.startsWith("/community-games/");if(isCommunityGame)gameUrl.searchParams.set("_polaris_refresh",String(Date.now()));const sandboxAttr=isCommunityGame?' sandbox="allow-scripts allow-forms allow-pointer-lock allow-downloads"':"";
- root.innerHTML='<section class="game-player"><div class="game-player-toolbar"><button class="game-player-back" id="game-back" type="button">← <span>Games</span></button><div class="game-player-title"><span class="game-player-live"></span><strong>'+esc(name)+'</strong><small>Running inside Polaris</small></div><div class="game-player-actions"><button class="game-player-action" id="game-reload" type="button" title="Reload game">↻</button><button class="game-player-action" id="game-fullscreen" type="button" title="Fullscreen">⛶</button></div></div><div class="game-frame-wrap"><iframe id="game-frame" class="game-frame" src="'+esc(gameUrl.href)+'" title="'+esc(name)+'"'+sandboxAttr+' allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write" allowfullscreen loading="eager"></iframe></div><p class="game-player-note">This game is embedded in Polaris. Some external sites may block iframe embedding.</p></section>';
+ const player=document.createElement("section");
+ player.className="game-player";
+ player.innerHTML='<div class="game-player-toolbar"><button class="game-player-back" id="game-back" type="button">← <span>Games</span></button><div class="game-player-title"><span class="game-player-live"></span><strong></strong><small>Running inside Polaris</small></div><div class="game-player-actions"><button class="game-player-action" id="game-reload" type="button" title="Reload game">↻</button><button class="game-player-action" id="game-fullscreen" type="button" title="Fullscreen">⛶</button></div></div><div class="game-frame-wrap"><iframe id="game-frame" class="game-frame" title="Game" allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write" allowfullscreen loading="eager"></iframe></div><p class="game-player-note">This game is embedded in Polaris. Some external sites may block iframe embedding.</p>';
+ player.querySelector(".game-player-title strong").textContent=name;
+ const frame=player.querySelector("#game-frame");
+ frame.src=gameUrl.href;
+ root.replaceChildren(player);
  root.classList.add("page-enter");
- document.querySelector("#game-back").addEventListener("click",()=>location.hash="games");
- document.querySelector("#game-reload").addEventListener("click",()=>{const frame=document.querySelector("#game-frame");frame.src=frame.src});
- document.querySelector("#game-fullscreen").addEventListener("click",()=>{const frame=document.querySelector("#game-frame");if(frame.requestFullscreen)frame.requestFullscreen().catch(()=>toast("Fullscreen was blocked by the browser."))});
+ player.querySelector("#game-back").addEventListener("click",()=>location.hash="games");
+ player.querySelector("#game-reload").addEventListener("click",()=>{frame.src=gameUrl.href});
+ player.querySelector("#game-fullscreen").addEventListener("click",()=>{if(frame.requestFullscreen)frame.requestFullscreen().catch(()=>toast("Fullscreen was blocked by the browser."))});
 }
 function searchResults(q){const pages=searchablePages.filter(x=>(x[0]+" "+x[2]).toLowerCase().includes(q));const games=state.games.filter(g=>String(g.name||"").toLowerCase().includes(q)).slice(0,4);return [...pages.map(x=>({label:x[0],detail:x[2],href:"#"+x[1],icon:PAGE_ICONS[x[1]]})),...games.map(g=>({label:g.name,detail:g.category||"Game",href:"#games",icon:"🎮"}))].slice(0,7)}
 const GAME_DATA_URL="https://sme-library.global.ssl.fastly.net/data/games.json";
