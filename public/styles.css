@@ -376,3 +376,13 @@ body{background:radial-gradient(ellipse at 50% 28%,#163b603b,transparent 48%),ra
 .address-prefix{white-space:nowrap}
 @media(max-width:900px){.ai-layout{grid-template-columns:1fr}.ai-messages{height:300px}}
 @media(max-width:600px){.ai-range-row{grid-template-columns:1fr}.library-toolbar{align-items:flex-start;flex-direction:column}.games-switcher{width:100%}.games-switch{flex:1}}
+
+/* Theme variants and compact density */
+.browser-home-link{display:grid!important;flex:0 0 27px;width:27px;height:27px;place-items:center;border-radius:9px;background:#172a40;border:1px solid #2d4b69;color:#e5f3ff;font-size:17px}
+.browser-home-link:hover{background:#214263;color:#fff}
+:root[data-theme="cyan"]{--blue:#65d7ef;--cyan:#8be9f4;--accent:#249bb4;--accent-soft:#123b49}
+:root[data-theme="cyan"] .rail-link.active,:root[data-theme="cyan"] .games-switch.active{background:#123b49;color:#c8f8ff}
+:root[data-theme="violet"]{--blue:#b69cff;--cyan:#d2a6ff;--accent:#7656bf;--accent-soft:#30234e}
+:root[data-theme="violet"] .rail-link.active,:root[data-theme="violet"] .games-switch.active{background:#30234e;color:#e9ddff}
+.compact-mode .content-card,.compact-mode .panel,.compact-mode .home-widget{padding:12px}
+.compact-mode .list-row,.compact-mode .library-card{padding:9px 12px}
