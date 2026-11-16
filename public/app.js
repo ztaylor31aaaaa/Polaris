@@ -35,7 +35,7 @@ function navigate(){
   let tab=state.tabs.find(t=>t.url===url);
   if(!tab){tab={id:crypto.randomUUID(),title:hostFromUrl(url),url,frameObj:null,loaded:false};state.tabs.push(tab)}
   state.activeTabId=tab.id;
-  if(addressInput)addressInput.value=url;
+  if(addressInput)addressInput.value=browserSettings.showFullUrls?url:hostFromUrl(url);
  }else if(addressInput)addressInput.value="";
  document.querySelector("#sidebar").classList.remove("open");
  renderBrowserTabs();
@@ -118,6 +118,7 @@ function normaliseBrowseInput(value){
 }
 async function browser(){return '<section class="polaris-browser browser-start"><div class="web-browser-empty"><div class="web-browser-mark">⌕</div><h2>Browse from Polaris</h2><p>Use the <strong>polaris://web</strong> bar above to search or enter a website address.</p><div class="web-browser-shortcuts"><button type="button" data-web-url="https://www.wikipedia.org/">Wikipedia</button><button type="button" data-web-url="https://www.mozilla.org/">Mozilla</button><button type="button" data-web-url="https://www.openstreetmap.org/">OpenStreetMap</button></div></div></section>'}
 function hostFromUrl(value){try{return new URL(value).hostname.replace(/^www\./,"")}catch{return "New tab"}}
+function withTimeout(promise,ms){let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("Page connection timed out")),ms)})]).finally(()=>clearTimeout(timer))}
 function activeTab(){return state.tabs.find(t=>t.id===state.activeTabId)||null}
 function renderBrowserTabs(){
  const strip=document.querySelector("#browser-tab-strip");if(!strip)return;
