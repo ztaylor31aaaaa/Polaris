@@ -462,3 +462,30 @@ body{background:radial-gradient(ellipse at 50% 28%,#163b603b,transparent 48%),ra
 .ai-code code{display:block;padding:11px;color:#d9e8f7;font:12px/1.6 Consolas,monospace;white-space:pre;overflow:auto}
 .ai-inline-code{padding:2px 4px;border-radius:4px;background:#1b2c40;color:#a9d7ff;font:11px Consolas,monospace}
 .ai-list-line{padding-left:10px;margin:3px 0}
+
+/* Polaris motion, context menu, feedback and shortcut polish */
+:root{scroll-behavior:smooth}
+button,a,.panel,.content-card,.home-widget,.browser-tab{transition:transform .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease,opacity .18s ease}
+.button:hover,.browser-tab:hover,.shortcut:hover{transform:translateY(-2px)}
+.rail-link{transition:transform .2s cubic-bezier(.2,.8,.2,1),background .2s,color .2s}
+.rail-link:hover{transform:translateX(2px) scale(1.06)}
+.ai-message{animation:polarisMessageIn .28s cubic-bezier(.2,.8,.2,1) both}
+.ai-thinking{animation:polarisPulse 1.2s ease-in-out infinite alternate}
+@keyframes polarisMessageIn{from{opacity:0;transform:translateY(9px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes polarisPulse{from{opacity:.48}to{opacity:1}}
+.page-enter{animation:polarisPageIn .24s ease both}
+@keyframes polarisPageIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.browser-tab.active{box-shadow:inset 0 -2px 0 var(--cyan),0 5px 16px #0002}
+.ai-chat-row{transition:background .18s,transform .18s}
+.ai-chat-row:hover{transform:translateX(2px)}
+.feedback-panel{max-width:900px}
+.feedback-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.keybind-row input{max-width:340px}
+.polaris-context-menu{position:fixed;z-index:9999;min-width:180px;padding:6px;border:1px solid #344a62;border-radius:11px;background:#101b29;box-shadow:0 14px 45px #0009;backdrop-filter:blur(16px);animation:polarisContextIn .12s ease both}
+.polaris-context-menu[hidden]{display:none}
+.polaris-context-menu button{display:block;width:100%;padding:9px 11px;border:0;border-radius:7px;background:transparent;color:#d5e5f5;text-align:left;font-size:12px;cursor:pointer}
+.polaris-context-menu button:hover{background:#203750;color:#fff}
+@keyframes polarisContextIn{from{opacity:0;transform:scale(.96) translateY(-3px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.rail-new-tab{border:1px solid #29445f;background:#10263a;color:#a9d8ff;cursor:pointer}
+@media(max-width:760px){.feedback-grid{grid-template-columns:1fr}.keybind-row{align-items:flex-start;flex-direction:column}.keybind-row input{max-width:none;width:100%}}
+@media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}button,a,.panel,.content-card,.home-widget,.browser-tab{transition:none!important;animation:none!important}.ai-message,.page-enter{animation:none!important}}
