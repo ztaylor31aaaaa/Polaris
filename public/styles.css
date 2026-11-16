@@ -163,3 +163,5 @@ body:after{width:360px;height:360px;right:5%;bottom:4%;background:#236c86;animat
 .main-area:has(.polaris-browser.is-open) .page-content{width:100%;max-width:none;height:calc(100vh - 58px);min-height:0;flex:1;margin:0;padding:0;overflow:hidden}
 .main-area:has(.polaris-browser.is-open) .footer{display:none}
 @media(max-width:780px){.browserbar{gap:6px;padding:7px}.addressbar-shell{padding:0 8px;gap:6px}.address-prefix{font-size:10px}.web-quick-actions{gap:3px}.web-quick-actions button{width:29px;height:30px}.top-actions{gap:4px}}
+
+.web-frame-loading.load-timeout .orbit-spinner{display:none}
