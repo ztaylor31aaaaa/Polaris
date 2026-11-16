@@ -19,7 +19,7 @@ if(request.method==="GET"&&p.startsWith("/community-games/")){
  const upstream=await fetch("https://raw.githubusercontent.com/ztaylor31aaaaa/Polaris-Games/main/"+path,{cf:{cacheTtl:60,cacheEverything:true}});
  if(!upstream.ok)return new Response("Community game asset not found.",{status:404,headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"}});
  const ext=path.split(".").pop().toLowerCase(),types={html:"text/html; charset=utf-8",htm:"text/html; charset=utf-8",js:"text/javascript; charset=utf-8",css:"text/css; charset=utf-8",json:"application/json; charset=utf-8",svg:"image/svg+xml",png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",webp:"image/webp",gif:"image/gif",mp3:"audio/mpeg",ogg:"audio/ogg",wav:"audio/wav",mp4:"video/mp4",woff:"font/woff",woff2:"font/woff2"};
- const headers=new Headers(upstream.headers);headers.set("content-type",types[ext]||"application/octet-stream");headers.set("cache-control","public, max-age=60");headers.set("x-content-type-options","nosniff");headers.set("access-control-allow-origin","*");
+ const headers=new Headers(upstream.headers);headers.set("content-type",types[ext]||"application/octet-stream");headers.set("cache-control","public, max-age=60");headers.set("x-content-type-options","nosniff");headers.set("access-control-allow-origin","*");headers.delete("content-disposition");
  return new Response(upstream.body,{status:200,headers});
 }
 
