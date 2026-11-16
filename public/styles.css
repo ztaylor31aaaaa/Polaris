@@ -406,3 +406,49 @@ body{background:radial-gradient(ellipse at 50% 28%,#163b603b,transparent 48%),ra
 .browser-tab-menu-panel[hidden]{display:none}
 .browser-tab-menu-panel button{display:block;width:100%;padding:9px 10px;border:0;border-radius:7px;background:transparent;color:#c6d8e9;text-align:left;font-size:12px;cursor:pointer}
 .browser-tab-menu-panel button:hover{background:#1c3046;color:#fff}
+
+
+/* Polaris AI workspace */
+.polaris-ai-workspace{display:grid;grid-template-columns:minmax(250px,310px) minmax(0,1fr);gap:14px;align-items:stretch;min-height:650px}
+.polaris-ai-history,.polaris-ai-main{padding:16px;min-width:0}
+.polaris-ai-history{display:flex;flex-direction:column;max-height:calc(100vh - 210px);min-height:560px}
+.ai-history-head,.ai-main-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ai-history-head{margin-bottom:12px}.ai-main-head{padding-bottom:13px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.ai-main-head h2{margin:3px 0 0;font:600 19px 'Space Grotesk',Arial}
+.ai-history-search{margin-bottom:10px}
+.ai-chat-list{display:flex;flex-direction:column;gap:5px;overflow:auto;min-height:100px;flex:1}
+.ai-chat-row{display:flex;align-items:center;gap:3px;padding:3px;border-radius:9px;background:transparent}
+.ai-chat-row:hover{background:#17283b}
+.ai-chat-item{display:flex;align-items:center;gap:8px;min-width:0;flex:1;border:0;background:transparent;color:var(--text);padding:8px;text-align:left}
+.ai-chat-item b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:500}
+.ai-chat-item span{color:var(--cyan)}
+.ai-chat-item.active{background:#1b3854;border-radius:7px}
+.ai-chat-action{border:0;background:transparent;color:var(--muted);border-radius:6px;width:27px;height:27px;flex:0 0 27px}
+.ai-chat-action:hover{background:#29445f;color:white}
+.ai-history-note{font-size:10px;margin:12px 0 0}
+.polaris-ai-main{display:flex;flex-direction:column;position:relative;min-height:560px}
+.polaris-ai-main .ai-messages{height:auto;min-height:370px;max-height:calc(100vh - 400px);flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:13px;border:1px solid var(--line);border-radius:11px;background:#0c1420}
+.polaris-ai-main .ai-message{max-width:92%;padding:11px 13px;border:1px solid #293b50;border-radius:11px;background:#111d2b;overflow-wrap:anywhere}
+.polaris-ai-main .ai-message.user{align-self:flex-end;background:#173451;border-color:#315c82}
+.polaris-ai-main .ai-message strong{font-size:10px;color:#8fcaff}
+.polaris-ai-main .ai-message p{margin:5px 0 0;font-size:12px;line-height:1.65;white-space:normal;overflow-wrap:anywhere}
+.ai-user-image{display:block;max-width:min(100%,420px);max-height:260px;object-fit:contain;margin-top:8px;border-radius:8px}
+.ai-chat-form{display:flex;align-items:flex-end;gap:8px;margin-top:11px}
+.ai-chat-form textarea{min-height:48px;max-height:150px;resize:vertical;flex:1}
+.ai-attach-button{white-space:nowrap;display:flex;align-items:center;justify-content:center;min-height:43px}
+.ai-composer-meta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:10px;margin-top:8px}
+.ai-attachment-help{font-size:10px;margin:6px 0 0}
+.ai-attachments{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ai-attachment-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:11px;color:var(--muted)}
+.ai-attachment-chip button{border:0;background:transparent;color:var(--muted);cursor:pointer}
+.ai-key-dialog{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:15px;background:#050b13c9;border-radius:14px}
+.ai-key-dialog[hidden]{display:none}
+.ai-key-dialog-card{width:min(100%,430px);padding:18px;box-shadow:0 20px 70px #0009}
+.ai-key-dialog-card .form-label{display:grid;gap:7px;margin:12px 0}
+.ai-key-dialog-card .ai-config-actions{align-items:center;margin-top:14px}
+.ai-key-dialog-card h3{margin:0;font-size:17px}
+.ai-key-dialog-card .muted{font-size:11px}
+.ai-instructions-row{display:block!important}
+.ai-instructions-row textarea{width:100%;margin-top:10px}
+@media(max-width:900px){.polaris-ai-workspace{grid-template-columns:1fr}.polaris-ai-history{max-height:320px;min-height:180px}.polaris-ai-main{min-height:500px}.polaris-ai-main .ai-messages{max-height:450px}}
+@media(max-width:560px){.ai-chat-form{flex-wrap:wrap}.ai-chat-form textarea{order:1;flex-basis:100%}.ai-composer-meta{flex-direction:column}.ai-main-head{align-items:flex-start;flex-direction:column}}
