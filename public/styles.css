@@ -98,3 +98,18 @@ body:after{width:360px;height:360px;right:5%;bottom:4%;background:#236c86;animat
 .game-frame{display:block;width:100%;height:100%;min-height:0;border:0}
 .game-player-note{flex:0 0 auto;margin:0;font-size:9px;line-height:12px}
 @media(max-width:780px){.main-area:has(.game-player) .page-content{height:calc(100vh - 58px);padding:6px 8px 8px}.game-frame-wrap,.game-frame{min-height:0}}
+
+/* Polaris internal web viewer */
+.polaris-browser{display:flex;flex-direction:column;gap:10px;min-height:560px}
+.web-address-form{display:flex;gap:8px;align-items:center;padding:9px;border:1px solid var(--line);border-radius:12px;background:#111a26}
+.web-address-form .input{flex:1;min-width:0}
+.web-nav-button{width:39px;height:39px;flex:0 0 39px;border:1px solid #34485f;border-radius:8px;background:#172538;color:#d9eaff;font-size:18px;cursor:pointer}
+.web-browser-hint{margin:0;color:#8494a9;font-size:10px;line-height:1.5}
+.web-browser-empty{flex:1;min-height:390px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;border:1px solid var(--line);border-radius:13px;background:radial-gradient(ellipse at 50% 35%,#1a3550 0%,#111a26 58%,#0d141e 100%)}
+.web-browser-mark{width:62px;height:62px;display:grid;place-items:center;border:1px solid #5a91bd66;border-radius:19px;background:#1b3550;color:#a8d8ff;font-size:32px}
+.web-browser-empty h2{margin:17px 0 7px;font-size:19px}.web-browser-empty p{margin:0;color:var(--muted);font-size:12px}
+.web-browser-shortcuts{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin-top:20px}
+.web-browser-shortcuts button{padding:9px 13px;border:1px solid #34485f;border-radius:8px;background:#172538;color:#d9eaff;cursor:pointer}
+.web-browser-frame-wrap{position:relative;flex:1;min-height:560px;overflow:hidden;border:1px solid #30445b;border-radius:12px;background:#080d14}
+.web-browser-frame{display:block;width:100%;height:100%;min-height:560px;border:0;background:#fff}
+@media(max-width:780px){.polaris-browser{min-height:calc(100vh - 180px)}.web-browser-frame-wrap,.web-browser-frame{min-height:calc(100vh - 280px)}.web-address-form{padding:6px;gap:5px}}
