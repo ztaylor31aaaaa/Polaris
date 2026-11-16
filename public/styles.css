@@ -566,3 +566,10 @@ button,a,.panel,.content-card,.home-widget,.browser-tab{transition:transform .18
 @media(hover:none){.browser-tab:hover,.content-card:hover,.utility-card:hover,.game-tile:hover{transform:none;box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 :root.reduce-motion *, :root.reduce-motion *::before, :root.reduce-motion *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+
+/* Games catalogue sorting and live refresh toolbar */
+.games-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.games-toolbar #game-search{flex:1;min-width:150px}
+.games-toolbar #game-sort{width:min(230px,42%);min-width:150px}
+#game-catalogue-status{margin:10px 2px 0;font-size:10px}
+@media(max-width:560px){.games-toolbar{align-items:stretch;flex-direction:column}.games-toolbar #game-sort{width:100%;min-width:0}}
