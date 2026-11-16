@@ -527,3 +527,11 @@ button,a,.panel,.content-card,.home-widget,.browser-tab{transition:transform .18
 :root[data-theme=custom] .button{border-color:var(--blue);background:var(--blue);color:#101820}
 :root[data-theme=custom] .rail-link.active,:root[data-theme=custom] .games-switch.active{background:color-mix(in srgb,var(--blue) 18%,var(--panel));border-color:var(--blue);color:var(--text)}
 :root[data-theme=custom] .muted,:root[data-theme=custom] .utility-heading p{color:var(--muted)}
+
+:root[data-theme=custom] .sidebar,:root[data-theme=custom] .browser-chrome,:root[data-theme=custom] .browserbar,:root[data-theme=custom] .browser-tabs-row,:root[data-theme=custom] .footer,:root[data-theme=custom] .settings-categories,:root[data-theme=custom] .settings-content,:root[data-theme=custom] .polaris-ai-history,:root[data-theme=custom] .polaris-ai-main,:root[data-theme=custom] .ai-messages,:root[data-theme=custom] .search-results,:root[data-theme=custom] .browser-tab-menu-panel,:root[data-theme=custom] .polaris-context-menu{background:var(--panel);border-color:var(--line);color:var(--text)}
+:root[data-theme=custom] .addressbar-shell,:root[data-theme=custom] .addressbar,:root[data-theme=custom] .home-search,:root[data-theme=custom] .theme-editor,:root[data-theme=custom] .ai-code{background:var(--panel2,var(--panel));border-color:var(--line);color:var(--text)}
+:root[data-theme=custom] .rail-link,:root[data-theme=custom] .rail-home,:root[data-theme=custom] .browser-tab,:root[data-theme=custom] .settings-category,:root[data-theme=custom] .utility-result{color:var(--text)}
+:root[data-theme=custom] .rail-link:hover,:root[data-theme=custom] .settings-category:hover,:root[data-theme=custom] .browser-tab:hover{background:color-mix(in srgb,var(--blue) 12%,var(--panel))}
+:root[data-theme=custom] .settings-section-heading,:root[data-theme=custom] .setting-row{border-color:var(--line)}
+:root[data-theme=custom] .settings-section-heading p,:root[data-theme=custom] .setting-row small{color:var(--muted)}
+:root[data-theme=custom] .home-brand,:root[data-theme=custom] .ai-richtext h1,:root[data-theme=custom] .ai-richtext h2,:root[data-theme=custom] .ai-richtext h3{color:var(--text)}
