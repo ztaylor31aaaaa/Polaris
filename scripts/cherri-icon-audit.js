@@ -118,21 +118,47 @@
       icons, symbols, canvases, frames: frameInfo, fontFaces
     };
 
-    // Copy exactly once, after the entire report has been assembled.
+    // Copy once, after the complete report has been assembled.
+    // Prefer the browser Clipboard API; Firefox DevTools does not provide
+    // the same copy() helper as Chromium DevTools.
     const output = JSON.stringify(report);
-    if (typeof copy === "function") {
-      copy(output);
-      console.log("Complete Cherri inventory copied once (" + output.length + " characters).");
-    } else if (navigator.clipboard?.writeText) {
+    let copied = false;
+    let clipboardError = null;
+
+    if (navigator.clipboard && window.isSecureContext) {
       try {
         await navigator.clipboard.writeText(output);
-        console.log("Complete Cherri inventory copied once (" + output.length + " characters).");
+        copied = true;
       } catch (error) {
-        console.error("Clipboard permission blocked. The complete one-line JSON follows:", error);
-        console.log(output);
+        clipboardError = error;
       }
+    }
+
+    // Fallback for browsers that block clipboard.writeText() in console eval.
+    if (!copied) {
+      let textarea;
+      try {
+        textarea = document.createElement("textarea");
+        textarea.value = output;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.left = "-10000px";
+        textarea.style.top = "0";
+        (document.body || document.documentElement).appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        copied = document.execCommand("copy");
+      } catch (error) {
+        clipboardError = error;
+      } finally {
+        textarea?.remove();
+      }
+    }
+
+    if (copied) {
+      console.log("Clipboard copy succeeded: complete inventory (" + output.length + " characters).");
     } else {
-      console.warn("Clipboard API unavailable. Copy the complete one-line JSON below:");
+      console.error("Automatic clipboard copy failed. Use the one-line JSON printed below. Clipboard error:", clipboardError);
       console.log(output);
     }
     return report;
