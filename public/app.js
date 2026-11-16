@@ -116,7 +116,7 @@ function saveTabUrl(url){
  if(!tab){tab={id:crypto.randomUUID(),title:hostFromUrl(url),url,frameObj:null,loaded:false};state.tabs.push(tab);state.activeTabId=tab.id}
  if(tab.url!==url){tab.url=url;tab.title=hostFromUrl(url);tab.loaded=false;tab.frameObj=null;}renderBrowserTabs();
 }
-async async function ensureScramjet(){
+async function ensureScramjet(){
  if(state.scramjetReady&&state.scramjet&&state.bareMux)return;
  if(!("serviceWorker" in navigator))throw new Error("This browser does not support service workers, which Scramjet requires.");
  if(typeof window.$scramjetLoadController!=="function")throw new Error("Scramjet's browser runtime did not load. Check the proxy assets build.");
