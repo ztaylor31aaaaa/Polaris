@@ -1,17 +1,15 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
-const require = createRequire(import.meta.url);
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(root, "../public");
 
-function findPackageRoot(name) {
-  let current = path.dirname(require.resolve(name));
+async function findPackageRoot(name) {
+  let current = path.dirname(fileURLToPath(import.meta.resolve(name)));
   while (current !== path.dirname(current)) {
     try {
-      const metadata = JSON.parse(require("node:fs").readFileSync(path.join(current, "package.json"), "utf8"));
+      const metadata = JSON.parse(await fs.readFile(path.join(current, "package.json"), "utf8"));
       if (metadata.name === name) return current;
     } catch {}
     current = path.dirname(current);
@@ -26,8 +24,14 @@ const packages = [
 ];
 
 for (const [name, output] of packages) {
-  const source = path.join(findPackageRoot(name), "dist");
+  const packageRoot = await findPackageRoot(name);
+  const source = path.join(packageRoot, "dist");
   const destination = path.join(publicDir, output);
+  try {
+    await fs.access(source);
+  } catch {
+    throw new Error("The installed package " + name + " does not contain a dist directory.");
+  }
   await fs.rm(destination, { recursive: true, force: true });
   await fs.mkdir(destination, { recursive: true });
   await fs.cp(source, destination, { recursive: true });
