@@ -386,3 +386,13 @@ body{background:radial-gradient(ellipse at 50% 28%,#163b603b,transparent 48%),ra
 :root[data-theme="violet"] .rail-link.active,:root[data-theme="violet"] .games-switch.active{background:#30234e;color:#e9ddff}
 .compact-mode .content-card,.compact-mode .panel,.compact-mode .home-widget{padding:12px}
 .compact-mode .list-row,.compact-mode .library-card{padding:9px 12px}
+
+
+/* Google search rail item and functional new-tab control */
+.rail-link.google-rail-link{font-family:Arial,sans-serif;font-size:19px;font-weight:700;letter-spacing:-1px;color:#8fcaff}
+.rail-link.google-rail-link span{display:block;line-height:1}
+.browser-tabs-row .browser-new-tab{display:grid!important;place-items:center;flex:0 0 27px;width:27px;height:27px;margin:1px 2px 0 0;padding:0;border:1px solid #2b4058;border-radius:8px;background:#111d2c;color:#b8d9f7;font-size:19px;line-height:1;cursor:pointer;transition:background .16s,border-color .16s,transform .16s}
+.browser-tabs-row .browser-new-tab:hover{background:#1b3550;border-color:#5794c7;color:#fff;transform:translateY(-1px)}
+.browser-tabs-row .browser-new-tab:active{transform:scale(.94)}
+.browser-tab-strip{min-width:0;flex:1}
+.ai-config #ai-refresh-models{align-self:start}
