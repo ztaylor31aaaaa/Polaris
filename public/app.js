@@ -184,8 +184,7 @@ async function renderBrowser(rawUrl){
     frame.frame.setAttribute("allow","fullscreen; autoplay; clipboard-read; clipboard-write");
     frame.frame.setAttribute("allowfullscreen","");
     host.replaceChildren(frame.frame);
-    const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("Page connection timed out")),browserSettings.loadTimeout));
-    await Promise.race([frame.go(target.href),timeout]);
+    await withTimeout(frame.go(target.href),browserSettings.loadTimeout);
     state.scramjetFrame=frame;state.activeWisp=server;
     const current=activeTab();if(current){current.frameObj=frame;current.loaded=true;current.url=target.href;current.title=hostFromUrl(target.href)}
     loading.classList.add("is-hidden");renderBrowserTabs();root.classList.add("page-enter");
