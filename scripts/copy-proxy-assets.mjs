@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 const root = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(root, "../public");
 
-async function findPackageRoot(name) {
-  let current = path.dirname(fileURLToPath(import.meta.resolve(name)));
+async function findPackageRoot(name, entry = name) {
+  let current = path.dirname(fileURLToPath(import.meta.resolve(entry)));
   while (current !== path.dirname(current)) {
     try {
       const metadata = JSON.parse(await fs.readFile(path.join(current, "package.json"), "utf8"));
@@ -18,13 +18,13 @@ async function findPackageRoot(name) {
 }
 
 const packages = [
-  ["@mercuryworkshop/scramjet", "scram"],
+  ["@mercuryworkshop/scramjet", "scram", "@mercuryworkshop/scramjet/path"],
   ["@mercuryworkshop/bare-mux", "baremux"],
   ["@mercuryworkshop/epoxy-transport", "epoxy"]
 ];
 
-for (const [name, output] of packages) {
-  const packageRoot = await findPackageRoot(name);
+for (const [name, output, entry] of packages) {
+  const packageRoot = await findPackageRoot(name, entry || name);
   const source = path.join(packageRoot, "dist");
   const destination = path.join(publicDir, output);
   try {
