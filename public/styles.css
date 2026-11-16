@@ -489,3 +489,41 @@ button,a,.panel,.content-card,.home-widget,.browser-tab{transition:transform .18
 .rail-new-tab{border:1px solid #29445f;background:#10263a;color:#a9d8ff;cursor:pointer}
 @media(max-width:760px){.feedback-grid{grid-template-columns:1fr}.keybind-row{align-items:flex-start;flex-direction:column}.keybind-row input{max-width:none;width:100%}}
 @media(prefers-reduced-motion:reduce){:root{scroll-behavior:auto}button,a,.panel,.content-card,.home-widget,.browser-tab{transition:none!important;animation:none!important}.ai-message,.page-enter{animation:none!important}}
+
+/* Custom theme editor and utility toolkit */
+.theme-editor{margin:18px 0;padding:15px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.theme-editor-heading{display:grid;gap:4px;margin-bottom:13px}
+.theme-editor-heading strong{font-size:12px}
+.theme-editor-heading small{color:var(--muted);font-size:10px}
+.theme-colour-control{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:11px;color:var(--text)}
+.theme-colour-control input[type=color]{width:48px;height:30px;padding:2px;border:1px solid var(--line);border-radius:7px;background:var(--panel2);cursor:pointer}
+.theme-editor-actions{display:flex;justify-content:flex-end;padding-top:12px}
+.toolkit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px;margin:20px 0}
+.utility-card{min-width:0;padding:17px;background:linear-gradient(145deg,#121f2d,#101722);border:1px solid #2a3c51;border-radius:13px}
+.utility-heading{display:flex;align-items:center;gap:11px;margin-bottom:15px}
+.utility-heading>span{display:grid;place-items:center;width:39px;height:39px;border-radius:11px;background:#1a3550;font-size:20px}
+.utility-heading h2{margin:0;font-size:14px}
+.utility-heading p{margin:4px 0 0;color:var(--muted);font-size:10px}
+.coin-stage{display:grid;place-items:center;min-height:108px}
+.coin{display:grid;place-items:center;width:76px;height:76px;border:5px solid #d6ad54;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe7a1,#bd8b2d 70%);color:#5e4312;font:700 25px 'Space Grotesk';box-shadow:0 8px 22px #0005,inset 0 0 0 3px #f9df91}
+.coin[data-side=tails]{background:radial-gradient(circle at 35% 30%,#d8e6f5,#7895b4 70%);border-color:#9bb4d0;color:#1c3856}
+.coin-spin{animation:coinFlip .65s cubic-bezier(.2,.75,.3,1)}
+@keyframes coinFlip{0%{transform:rotateY(0) scale(1)}50%{transform:rotateY(900deg) scale(1.12)}100%{transform:rotateY(1800deg) scale(1)}}
+.utility-action{width:100%;margin-top:12px}
+.utility-result{min-height:18px;margin:10px 0 0;text-align:center;color:var(--muted);font-size:11px}
+.utility-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.utility-fields .form-label{min-width:0}
+.dice-results{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;min-height:45px;margin-top:14px}
+.dice-face{display:grid;place-items:center;width:42px;height:42px;border:1px solid #426e98;border-radius:10px;background:linear-gradient(145deg,#1c456b,#132b43);color:#e8f5ff;font:700 16px 'Space Grotesk';animation:dicePop .28s ease both;animation-delay:var(--die-delay,0ms)}
+@keyframes dicePop{from{opacity:0;transform:translateY(-9px) rotate(-9deg) scale(.8)}to{opacity:1;transform:translateY(0) rotate(0) scale(1)}}
+.big-tool-result{display:grid;place-items:center;min-height:58px;margin-top:12px;padding:10px;border:1px solid var(--line);border-radius:9px;background:#0d1723;color:#b9dcff;font:600 22px 'Space Grotesk';text-align:center;overflow-wrap:anywhere}
+.stopwatch-display{margin:17px 0;text-align:center;color:#c4e3ff;font:600 clamp(29px,5vw,42px) 'Space Grotesk';font-variant-numeric:tabular-nums}
+.utility-buttons{display:flex;justify-content:center;gap:9px}
+@media(max-width:560px){.utility-fields{grid-template-columns:1fr}.theme-colour-control{font-size:10px}}
+:root[data-theme=custom]{color:var(--text);background:var(--bg)}
+:root[data-theme=custom] body{background-color:var(--bg);color:var(--text)}
+:root[data-theme=custom] .panel,:root[data-theme=custom] .content-card,:root[data-theme=custom] .home-widget,:root[data-theme=custom] .utility-card{background:var(--panel);border-color:var(--line);color:var(--text)}
+:root[data-theme=custom] .input,:root[data-theme=custom] .textarea,:root[data-theme=custom] .select,:root[data-theme=custom] .big-tool-result{background:var(--panel2,var(--panel));border-color:var(--line);color:var(--text)}
+:root[data-theme=custom] .button{border-color:var(--blue);background:var(--blue);color:#101820}
+:root[data-theme=custom] .rail-link.active,:root[data-theme=custom] .games-switch.active{background:color-mix(in srgb,var(--blue) 18%,var(--panel));border-color:var(--blue);color:var(--text)}
+:root[data-theme=custom] .muted,:root[data-theme=custom] .utility-heading p{color:var(--muted)}
