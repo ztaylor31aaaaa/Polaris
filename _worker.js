@@ -5,6 +5,24 @@ function reply(data,status=200){return new Response(JSON.stringify(data),{status
 function clean(value){return String(value||"game").replace(/[^a-z0-9._-]/gi,"-").slice(0,80)}
 function authorised(request,token){const supplied=request.headers.get("Authorization")?.replace(/^Bearer\s+/i,"")||request.headers.get("X-Discord-Token");return Boolean(token&&supplied===token)}
 async function route(request,env){const u=new URL(request.url),p=u.pathname;if(request.method==="OPTIONS")return new Response(null,{status:204,headers:HEADERS});
+if(request.method==="GET"&&p==="/api/community-games"){
+ const upstream=await fetch("https://raw.githubusercontent.com/ztaylor31aaaaa/Polaris-Games/main/catalogue.json",{cf:{cacheTtl:30,cacheEverything:true}});
+ if(!upstream.ok)return reply({error:"Community game catalogue unavailable."},502);
+ const text=await upstream.text();let data;
+ try{data=JSON.parse(text)}catch{return reply({error:"Community game catalogue is invalid JSON."},502)}
+ if(!Array.isArray(data))return reply({error:"Community game catalogue must be an array."},502);
+ return new Response(JSON.stringify(data),{status:200,headers:{...HEADERS,"cache-control":"public, max-age=30"}});
+}
+if(request.method==="GET"&&p.startsWith("/community-games/")){
+ const path=p.slice("/community-games/".length),parts=path.split("/");
+ if(!path||parts.some(part=>!part||part==="."||part===".."||! /^[a-zA-Z0-9._-]+$/.test(part)))return reply({error:"Invalid community game asset path."},400);
+ const upstream=await fetch("https://raw.githubusercontent.com/ztaylor31aaaaa/Polaris-Games/main/"+path,{cf:{cacheTtl:60,cacheEverything:true}});
+ if(!upstream.ok)return new Response("Community game asset not found.",{status:404,headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"}});
+ const ext=path.split(".").pop().toLowerCase(),types={html:"text/html; charset=utf-8",htm:"text/html; charset=utf-8",js:"text/javascript; charset=utf-8",css:"text/css; charset=utf-8",json:"application/json; charset=utf-8",svg:"image/svg+xml",png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",webp:"image/webp",gif:"image/gif",mp3:"audio/mpeg",ogg:"audio/ogg",wav:"audio/wav",mp4:"video/mp4",woff:"font/woff",woff2:"font/woff2"};
+ const headers=new Headers(upstream.headers);headers.set("content-type",types[ext]||"application/octet-stream");headers.set("cache-control","public, max-age=60");headers.set("x-content-type-options","nosniff");headers.set("access-control-allow-origin","*");
+ return new Response(upstream.body,{status:200,headers});
+}
+
 if(p==="/api/ai/models"||p==="/api/ai/chat"){
  if(request.method!==(p.endsWith("/models")?"POST":"POST"))return reply({error:"Method not allowed."},405);
  const key=request.headers.get("Authorization")?.replace(/^Bearer\s+/i,"");
