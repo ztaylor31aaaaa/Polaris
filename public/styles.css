@@ -214,3 +214,7 @@ body:after{width:360px;height:360px;right:5%;bottom:4%;background:#236c86;animat
 .reduce-motion *, .reduce-motion *:before,.reduce-motion *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 @media(max-width:780px){.browser-tabs-row{padding-left:6px;gap:5px}.browser-tab{min-width:85px;max-width:145px;padding:0 7px}.browser-window-actions .connection-label{display:none}.browserbar{height:48px;flex-basis:48px;padding:6px}.browserbar .address-prefix{display:none}.settings-layout{grid-template-columns:1fr}.settings-categories{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-category{padding:9px}.setting-row{align-items:flex-start}.browser-tab-title{font-size:10px}}
 @media(max-width:420px){.browser-tabs-row{height:36px}.browser-tab{min-width:72px;max-width:112px;gap:5px}.browser-tab-favicon{display:none}.browserbar .web-quick-actions button{width:27px;height:29px}.browserbar .addressbar-shell{padding:0 9px}.browserbar .address-prefix{display:none}}
+
+/* Browser chrome uses two stacked rows: tabs (39px) and controls (49px). */
+.main-area:has(.polaris-browser.is-open) .page-content{height:calc(100vh - 88px)}
+@media(max-width:780px){.main-area:has(.polaris-browser.is-open) .page-content{height:calc(100vh - 84px)}}
