@@ -4,10 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "dev": "npm run build:proxy && wrangler dev",
+    "deploy": "npm run build:proxy && wrangler deploy",
+    "build:proxy": "node scripts/copy-proxy-assets.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "@mercuryworkshop/bare-mux": "2.1.9",
+    "@mercuryworkshop/epoxy-transport": "2.1.28",
+    "@mercuryworkshop/scramjet": "1.1.0"
   }
 }
