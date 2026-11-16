@@ -396,3 +396,13 @@ body{background:radial-gradient(ellipse at 50% 28%,#163b603b,transparent 48%),ra
 .browser-tabs-row .browser-new-tab:active{transform:scale(.94)}
 .browser-tab-strip{min-width:0;flex:1}
 .ai-config #ai-refresh-models{align-self:start}
+
+
+/* Search remains in the address bar; no dedicated sidebar search page. */
+.browser-tab-menu-wrap{position:relative;display:flex;align-items:center;flex:0 0 30px}
+.browser-tab-menu-button{width:28px;height:28px;border:1px solid transparent;border-radius:8px;background:transparent;color:#9eb5cd;font-size:21px;line-height:1;cursor:pointer}
+.browser-tab-menu-button:hover,.browser-tab-menu-button[aria-expanded="true"]{background:#1b3046;border-color:#2b4965;color:#e5f3ff}
+.browser-tab-menu-panel{position:absolute;z-index:100;top:34px;right:0;width:190px;padding:5px;border:1px solid #2b4058;border-radius:10px;background:#101b29;box-shadow:0 12px 35px #0008}
+.browser-tab-menu-panel[hidden]{display:none}
+.browser-tab-menu-panel button{display:block;width:100%;padding:9px 10px;border:0;border-radius:7px;background:transparent;color:#c6d8e9;text-align:left;font-size:12px;cursor:pointer}
+.browser-tab-menu-panel button:hover{background:#1c3046;color:#fff}
