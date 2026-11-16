@@ -118,13 +118,43 @@
       icons, symbols, canvases, frames: frameInfo, fontFaces
     };
 
-    // Keep the full report available globally for manual copying in Firefox.
-    // No automatic clipboard operation is attempted.
+    // Make the report available globally and visibly, without clipboard permissions.
     window.__CHERRI_INVENTORY__ = report;
     const output = JSON.stringify(report);
-    console.log("CHERRI INVENTORY READY — " + output.length + " characters.");
-    console.log(output);
-    console.log('To print it again, run: copy(JSON.stringify(window.__CHERRI_INVENTORY__))');
+
+    // Remove an earlier output panel if the script is run more than once.
+    document.getElementById("__cherri_inventory_panel__")?.remove();
+
+    const panel = document.createElement("div");
+    panel.id = "__cherri_inventory_panel__";
+    panel.style.cssText = [
+      "position:fixed", "inset:16px", "z-index:2147483647",
+      "background:#101827", "color:#fff", "border:2px solid #58bfff",
+      "border-radius:10px", "padding:12px", "display:flex",
+      "flex-direction:column", "gap:8px", "font:13px sans-serif",
+      "box-shadow:0 8px 40px #0009"
+    ].join(";");
+
+    const heading = document.createElement("div");
+    heading.textContent = "Cherri inventory ready — " + output.length + " characters. Click the text, then press Ctrl+A and Ctrl+C.";
+    heading.style.cssText = "font-weight:700;flex:none";
+
+    const close = document.createElement("button");
+    close.textContent = "Close";
+    close.style.cssText = "position:absolute;right:24px;top:22px;padding:6px 12px;cursor:pointer";
+    close.addEventListener("click", () => panel.remove());
+
+    const area = document.createElement("textarea");
+    area.value = output;
+    area.setAttribute("aria-label", "Complete Cherri UI inventory JSON");
+    area.style.cssText = "box-sizing:border-box;flex:1;width:100%;min-height:0;resize:none;background:#07111f;color:#d7f3ff;border:1px solid #456;padding:10px;font:12px/1.4 monospace;white-space:pre;";
+
+    panel.append(heading, close, area);
+    (document.body || document.documentElement).appendChild(panel);
+    area.focus();
+    area.select();
+
+    console.log("CHERRI INVENTORY READY — report saved to window.__CHERRI_INVENTORY__ (" + output.length + " characters).");
     return report;
   };
 
