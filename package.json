@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "npm run build:proxy && wrangler dev",
-    "deploy": "npm run build:proxy && wrangler deploy",
-    "build:proxy": "node scripts/copy-proxy-assets.mjs"
+    "deploy": "wrangler deploy",
+    "build:proxy": "node scripts/copy-proxy-assets.mjs",
+    "postinstall": "npm run build:proxy",
+    "predeploy": "npm run build:proxy"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
