@@ -24,10 +24,16 @@
     </div>
   </aside>
   <div class="main-area">
-    <header class="browserbar">
-      <div class="addressbar-shell"><span class="address-lock">●</span><span class="address-prefix">polaris://web</span><form id="global-address-form" class="global-address-form"><input id="global-address" type="text" autocomplete="off" spellcheck="false" placeholder="Search or enter a website address…" aria-label="Search or enter a website address"></form></div>
-      <div class="web-quick-actions"><button id="web-back" type="button" title="Back" aria-label="Back">←</button><button id="web-forward" type="button" title="Forward" aria-label="Forward">→</button><button id="web-reload" type="button" title="Reload" aria-label="Reload">↻</button></div>
-      <div class="top-actions"><span class="connection-label" id="api-pill">Connecting</span><button class="menu-toggle" id="menu-toggle" aria-label="Open navigation">☰</button></div>
+    <header class="browser-chrome">
+      <div class="browser-tabs-row">
+        <div class="browser-tab-strip" id="browser-tab-strip" aria-label="Browser tabs"></div>
+        <div class="browser-window-actions"><span class="connection-label" id="api-pill">Connecting</span><button class="chrome-menu" id="menu-toggle" type="button" aria-label="Open navigation">☰</button></div>
+      </div>
+      <div class="browserbar">
+        <div class="web-quick-actions"><button id="web-back" type="button" title="Back" aria-label="Back">←</button><button id="web-forward" type="button" title="Forward" aria-label="Forward">→</button><button id="web-reload" type="button" title="Reload" aria-label="Reload">↻</button></div>
+        <div class="addressbar-shell"><span class="address-lock">●</span><span class="address-prefix">polaris://web</span><form id="global-address-form" class="global-address-form"><input id="global-address" type="text" autocomplete="off" spellcheck="false" placeholder="Search or enter a website address…" aria-label="Search or enter a website address"></form></div>
+        <div class="web-quick-actions"><button id="web-new-tab" type="button" title="New tab" aria-label="New tab">＋</button><button id="web-bookmark" type="button" title="Bookmark (coming soon)" aria-label="Bookmark">☆</button></div>
+      </div>
     </header>
     <main id="page-content" class="page-content"><div class="loading">Initialising Polaris…</div></main>
     <footer class="footer"><span>POLARIS</span><span id="footer-version">Application workspace</span></footer>
