@@ -1,5 +1,5 @@
 (() => {
-  const clean = value => String(value || "").replace(/\\s+/g, " ").trim().slice(0, 180);
+  const clean = value => String(value || "").replace(/\s+/g, " ").trim().slice(0, 180);
   const visible = el => {
     const style = getComputedStyle(el);
     const rect = el.getBoundingClientRect();
