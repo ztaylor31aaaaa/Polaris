@@ -113,7 +113,7 @@ async function loadGameCatalogue(){
     name:String(game.name),
     description:String(game.description||game.category||"HTML game"),
     category:String(game.category||game.type||"Game"),
-    image:game.image||game.cover||game.thumb||game.icon||game.thumbnail||"",
+    image:game.image||game.cover||game.thumb||"",
     href:resolveGameUrl(game.src||game.url)
   })).filter(game=>game.href);
 }
@@ -142,12 +142,20 @@ function sortGameEntries(games,mode){
   return Number(seen[bk]||0)-Number(seen[ak]||0);
  });
 }
+function snubbyGameIconUrl(image){
+ const value=String(image||"").trim();
+ if(!value)return "";
+ if(value.startsWith("http://")||value.startsWith("https://")||value.startsWith("data:")||value.startsWith("blob:"))return value;
+ let clean=value;
+ while(clean.startsWith("/"))clean=clean.slice(1);
+ if(clean.startsWith("data/app-icons/"))clean=clean.slice("data/app-icons/".length);
+ return "https://sme-library.global.ssl.fastly.net/data/app-icons/"+clean;
+}
 function gameTilesMarkup(games){
  return games.map(g=>{
   const isCommunity=g.source==="Polaris Games"||String(g.href||"").startsWith("/community-games/");
-  const isAbsolute=g.image&&(g.image.startsWith("https://")||g.image.startsWith("http://")||g.image.startsWith("data:"));
-  const imageUrl=g.image?(isCommunity||isAbsolute?g.image:"https://sme-library.global.ssl.fastly.net/data/app-icons/"+g.image):"";
-  const fallback='<span class="game-tile-icon"'+(imageUrl?' hidden':'')+'>'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';
+  const imageUrl=isCommunity?g.image:snubbyGameIconUrl(g.image);
+  const fallback='<span class="game-tile-icon game-tile-icon-fallback"'+(imageUrl?' hidden':'')+'>'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';
   const image=imageUrl?'<img class="game-tile-image" src="'+esc(imageUrl)+'" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false">'+fallback:fallback;
   return '<button class="game-tile" type="button" data-game-id="'+esc(g.id||g.href)+'" data-game-url="'+esc(g.href)+'" data-game-name="'+esc(g.name)+'" data-game-search="'+esc((g.name+" "+g.description+" "+g.category).toLowerCase())+'">'+image+'<span class="game-tile-name">'+esc(g.name)+'</span></button>';
  }).join("");
