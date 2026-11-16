@@ -118,49 +118,13 @@
       icons, symbols, canvases, frames: frameInfo, fontFaces
     };
 
-    // Copy once, after the complete report has been assembled.
-    // Prefer the browser Clipboard API; Firefox DevTools does not provide
-    // the same copy() helper as Chromium DevTools.
+    // Keep the full report available globally for manual copying in Firefox.
+    // No automatic clipboard operation is attempted.
+    window.__CHERRI_INVENTORY__ = report;
     const output = JSON.stringify(report);
-    let copied = false;
-    let clipboardError = null;
-
-    if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(output);
-        copied = true;
-      } catch (error) {
-        clipboardError = error;
-      }
-    }
-
-    // Fallback for browsers that block clipboard.writeText() in console eval.
-    if (!copied) {
-      let textarea;
-      try {
-        textarea = document.createElement("textarea");
-        textarea.value = output;
-        textarea.setAttribute("readonly", "");
-        textarea.style.position = "fixed";
-        textarea.style.left = "-10000px";
-        textarea.style.top = "0";
-        (document.body || document.documentElement).appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        copied = document.execCommand("copy");
-      } catch (error) {
-        clipboardError = error;
-      } finally {
-        textarea?.remove();
-      }
-    }
-
-    if (copied) {
-      console.log("Clipboard copy succeeded: complete inventory (" + output.length + " characters).");
-    } else {
-      console.error("Automatic clipboard copy failed. Use the one-line JSON printed below. Clipboard error:", clipboardError);
-      console.log(output);
-    }
+    console.log("CHERRI INVENTORY READY — " + output.length + " characters.");
+    console.log(output);
+    console.log('To print it again, run: copy(JSON.stringify(window.__CHERRI_INVENTORY__))');
     return report;
   };
 
