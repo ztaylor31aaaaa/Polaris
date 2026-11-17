@@ -100,9 +100,9 @@ async function warmSearchCatalogue(){
 function searchResults(q){const pages=searchablePages.filter(x=>(x[0]+" "+x[2]).toLowerCase().includes(q));const games=(state.games||[]).filter(g=>(g.name+" "+(g.description||"")+" "+(g.category||"")).toLowerCase().includes(q)).slice(0,4);return [...pages.map(x=>({label:x[0],detail:x[2],href:"#"+x[1],icon:PAGE_ICONS[x[1]]})),...games.map(g=>({label:g.name,detail:g.category||"Game",href:"#games",icon:"🎮"}))].slice(0,7)}
 const GAME_DATA_URL="https://sme-library.global.ssl.fastly.net/data/games.json";
 const COMMUNITY_GAMES_API="/api/community-games";
-function communityAssetPath(path){return "/community-games/"+String(path||"").split("/").filter(Boolean).join("/") }
+function communityAssetPath(path){const value=String(path||"").trim();if(!value)return "";if(/^(https?:|data:|blob:)/i.test(value))return value;return "/community-games/"+value.split("/").filter(Boolean).join("/") }
 async function loadCommunityGameCatalogue(){
- const response=await fetch(COMMUNITY_GAMES_API,{cache:"no-store"});
+ const response=await fetch(COMMUNITY_GAMES_API,{cache:"no-cache"});
  if(!response.ok)throw new Error("Polaris Games catalogue returned "+response.status);
  const data=await response.json();
  if(!Array.isArray(data))throw new Error("Polaris Games catalogue format was invalid");
@@ -124,7 +124,7 @@ function isCatalogueGame(game){
   return Boolean(game&&game.name&&src&&!/(^|\/)signin\.html(?:[?#]|$)/i.test(src));
 }
 async function loadGameCatalogue(){
-  const response=await fetch(GAME_DATA_URL+"?t="+Date.now(),{cache:"no-store"});
+  const response=await fetch(GAME_DATA_URL,{cache:"force-cache"});
   if(!response.ok)throw new Error("Game catalogue returned "+response.status);
   const data=await response.json();
   if(!Array.isArray(data))throw new Error("Game catalogue format was invalid");
@@ -162,21 +162,16 @@ function sortGameEntries(games,mode){
   return Number(seen[bk]||0)-Number(seen[ak]||0);
  });
 }
-function snubbyGameIconUrl(image){
- const value=String(image||"").trim();
- if(!value)return "";
- if(value.startsWith("http://")||value.startsWith("https://")||value.startsWith("data:")||value.startsWith("blob:"))return value;
- let clean=value;
- while(clean.startsWith("/"))clean=clean.slice(1);
- if(clean.startsWith("data/app-icons/"))clean=clean.slice("data/app-icons/".length);
- return "https://sme-library.global.ssl.fastly.net/data/app-icons/"+clean;
-}
+function snubbyGameIconCandidates(image){const value=String(image||"").trim();if(!value)return [];if(/^(https?:|data:|blob:)/i.test(value))return [value];let clean=value;while(clean.startsWith("/"))clean=clean.slice(1);const base="https://sme-library.global.ssl.fastly.net/",paths=[];if(clean.startsWith("data/"))paths.push(clean);if(clean.startsWith("app-icons/"))paths.push("data/"+clean);paths.push("data/app-icons/"+clean,clean);return [...new Set(paths.map(path=>base+path))]}
+function snubbyGameIconUrl(image){return snubbyGameIconCandidates(image)[0]||""}
+function polarisGameIconError(img){let list=[];try{list=JSON.parse(img.dataset.iconCandidates||"[]")}catch{}const next=Number(img.dataset.iconAttempt||0)+1;img.dataset.iconAttempt=String(next);if(next<list.length){img.src=list[next];return}img.hidden=true;if(img.nextElementSibling)img.nextElementSibling.hidden=false}
 function gameTilesMarkup(games){
  return games.map(g=>{
-  const isCommunity=g.source==="Polaris Games"||String(g.href||"").startsWith("/community-games/");
-  const imageUrl=isCommunity?g.image:snubbyGameIconUrl(g.image);
+  const community=g.source==="Polaris Games"||String(g.href||"").startsWith("/community-games/");
+  const candidates=community?(g.image?[g.image]:[]):snubbyGameIconCandidates(g.image);
+  const imageUrl=candidates[0]||"";
   const fallback='<span class="game-tile-icon game-tile-icon-fallback"'+(imageUrl?' hidden':'')+'>'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';
-  const image=imageUrl?'<img class="game-tile-image" src="'+esc(imageUrl)+'" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false">'+fallback:fallback;
+  const image=imageUrl?'<img class="game-tile-image" src="'+esc(imageUrl)+'" data-icon-candidates="'+esc(JSON.stringify(candidates))+'" alt="" loading="lazy" decoding="async" onerror="polarisGameIconError(this)">'+fallback:fallback;
   return '<button class="game-tile" type="button" data-game-id="'+esc(g.id||g.href)+'" data-game-url="'+esc(g.href)+'" data-game-name="'+esc(g.name)+'" data-game-search="'+esc((g.name+" "+g.description+" "+g.category).toLowerCase())+'">'+image+'<span class="game-tile-name">'+esc(g.name)+'</span></button>';
  }).join("");
 }
