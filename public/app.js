@@ -225,6 +225,17 @@ async function ensureScramjet(){
  if(!window.BareMux?.BareMuxConnection)throw new Error("BareMux did not load. Check the proxy assets build.");
  await navigator.serviceWorker.register("/sw.js",{scope:"/"});
  await navigator.serviceWorker.ready;
+ // A ready registration does not guarantee this page is controlled yet.
+ // Without a controller, proxied iframe URLs can fall through to the SPA
+ // asset fallback and recursively load Polaris inside itself.
+ if(!navigator.serviceWorker.controller){
+  await withTimeout(new Promise(resolve=>{
+   navigator.serviceWorker.addEventListener("controllerchange",resolve,{once:true});
+  }),7000).catch(()=>{});
+ }
+ if(!navigator.serviceWorker.controller){
+  throw new Error("The Polaris proxy service worker has not taken control of this page yet. Reload Polaris once, then try the website again.");
+ }
  const {ScramjetController}=window.$scramjetLoadController();
  const controller=new ScramjetController({files:{wasm:"/scram/scramjet.wasm.wasm",all:"/scram/scramjet.all.js",sync:"/scram/scramjet.sync.js"}});
  await controller.init();
