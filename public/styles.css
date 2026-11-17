@@ -575,3 +575,18 @@ button,a,.panel,.content-card,.home-widget,.browser-tab{transition:transform .18
 @media(max-width:560px){.games-toolbar{align-items:stretch;flex-direction:column}.games-toolbar #game-sort{width:100%;min-width:0}}
 
 .game-tile-icon[hidden]{display:none!important}
+
+/* Website favicons and persistent bookmarks bar */
+.browser-tab-favicon-image{display:block;flex:0 0 17px;width:17px;height:17px;object-fit:contain;border-radius:4px;background:#fff}
+.browser-tab-favicon[hidden],.bookmark-bar-fallback[hidden]{display:none!important}
+.bookmarks-bar{height:34px;min-height:34px;display:flex;align-items:center;gap:8px;padding:0 14px;background:#0b111b;border-bottom:1px solid #ffffff0b;overflow:hidden}
+.bookmark-bar-items{display:flex;align-items:center;gap:5px;min-width:0;flex:1;overflow-x:auto;scrollbar-width:thin}
+.bookmark-bar-item{height:27px;max-width:190px;min-width:0;display:flex;align-items:center;gap:7px;padding:0 9px;border:1px solid transparent;border-radius:7px;background:transparent;color:#b6c5d7;font-size:10px;cursor:pointer;transition:background .15s,border-color .15s}
+.bookmark-bar-item:hover{background:#1b2a3b;border-color:#ffffff12;color:#edf6ff}
+.bookmark-bar-item img,.bookmark-bar-fallback{width:15px;height:15px;flex:0 0 15px;object-fit:contain;border-radius:3px}
+.bookmark-bar-fallback{display:grid;place-items:center;color:#a9c5df}
+.bookmark-bar-item span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bookmark-bar-empty{padding:0 8px;color:#687b91;font-size:10px;white-space:nowrap}
+.bookmark-bar-manage{height:25px;flex:0 0 auto;padding:0 9px;border:1px solid #ffffff12;border-radius:7px;background:#131d2a;color:#91a8c1;font-size:10px;cursor:pointer}
+.bookmark-bar-manage:hover{background:#1d3045;color:#e5f2ff}
+@media(max-width:600px){.bookmarks-bar{padding:0 7px}.bookmark-bar-item{max-width:130px;padding:0 6px}.bookmark-bar-manage{padding:0 6px}}
