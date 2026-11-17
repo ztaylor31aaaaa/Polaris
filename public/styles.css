@@ -590,3 +590,8 @@ button,a,.panel,.content-card,.home-widget,.browser-tab{transition:transform .18
 .bookmark-bar-manage{height:25px;flex:0 0 auto;padding:0 9px;border:1px solid #ffffff12;border-radius:7px;background:#131d2a;color:#91a8c1;font-size:10px;cursor:pointer}
 .bookmark-bar-manage:hover{background:#1d3045;color:#e5f2ff}
 @media(max-width:600px){.bookmarks-bar{padding:0 7px}.bookmark-bar-item{max-width:130px;padding:0 6px}.bookmark-bar-manage{padding:0 6px}}
+
+/* Polaris power-user quality-of-life pack */
+.browser-tab.is-dragging{opacity:.4;transform:scale(.97)}
+.browser-tab[draggable=true]{cursor:grab}.browser-tab[draggable=true]:active{cursor:grabbing}
+.browser-tab-strip{user-select:none}
