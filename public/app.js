@@ -33,7 +33,9 @@ function readLibrary(){try{return JSON.parse(localStorage.getItem("polaris-libra
 function shortcut(page,icon,label){return '<a class="shortcut" href="#'+page+'"><span class="shortcut-icon">'+icon+'</span><span>'+label+'</span></a>'}
 function updateClock(){const now=new Date(),time=document.querySelector("#clock-time"),date=document.querySelector("#clock-date");if(!time||!date)return;time.textContent=now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});date.textContent=now.toLocaleDateString([],{weekday:"long",day:"numeric",month:"long"})}
 async function render(page){root.classList.remove("page-enter");root.innerHTML='<div class="loading">Loading '+esc(PAGE_NAMES[page])+'…</div>';try{const views={home,browser,games,tools:toolkit,ai,bookmarks:bookmarksPage,history:historyPage,changelog,feedback,settings};root.innerHTML=await views[page]();requestAnimationFrame(()=>root.classList.add("page-enter"));bind(page);revealCards()}catch(e){root.innerHTML=header(PAGE_NAMES[page],"Something went wrong.")+'<div class="empty-state">'+esc(e.message)+'</div>'}}
+function parkActiveBrowserFrame(){const tab=activeTab();const frame=tab?.frameObj?.frame;if(!frame||!frame.isConnected)return;let parking=document.querySelector("#polaris-frame-parking");if(!parking){parking=document.createElement("div");parking.id="polaris-frame-parking";parking.setAttribute("aria-hidden","true");Object.assign(parking.style,{position:"fixed",left:"-10000px",top:"0",width:"1px",height:"1px",overflow:"hidden",visibility:"hidden",pointerEvents:"none",zIndex:"-1"});document.body.append(parking)}parking.append(frame)}
 function navigate(){
+ const current=activeTab();if(current?.frameObj?.frame&&location.hash.slice(1)!==(current.route||""))parkActiveBrowserFrame();
  const raw=location.hash.slice(1)||"home",base=raw.split("?")[0],key=base==="play"?"play":base==="browser"?"browser":(PAGE_NAMES[base]?base:"home");
  document.querySelectorAll(".rail-link").forEach(a=>a.classList.toggle("active",a.dataset.page===key));
  document.querySelector(".rail-home").classList.toggle("active",key==="home");
@@ -41,7 +43,7 @@ function navigate(){
  const input=document.querySelector("#global-address"),prefix=document.querySelector("#address-prefix"),lock=document.querySelector(".address-lock");
  let tab=params.get("tab")?state.tabs.find(t=>t.id===params.get("tab")):null;
  if(key==="browser"&&params.get("url")){const url=params.get("url");tab=tab||state.tabs.find(t=>t.url===url);if(!tab){tab={id:crypto.randomUUID(),title:hostFromUrl(url),url,route:raw,page:"browser",frameObj:null,loaded:false};state.tabs.push(tab)}tab.url=url;tab.page="browser";tab.route=raw;tab.title=hostFromUrl(url);state.activeTabId=tab.id;if(input)input.value=browserSettings.showFullUrls?url:hostFromUrl(url)}
- else{if(input)input.value="";tab=tab||activeTab();if(tab){tab.page=key;tab.route=params.has("tab")?raw:key+"?tab="+tab.id;tab.title=key==="play"?(params.get("name")||"Game"):PAGE_NAMES[key]||"Home";tab.url="";tab.frameObj=null;tab.loaded=false;state.activeTabId=tab.id}}
+ else{if(input)input.value="";tab=tab||activeTab();if(tab){tab.page=key;tab.route=params.has("tab")?raw:key+"?tab="+tab.id;tab.title=key==="play"?(params.get("name")||"Game"):PAGE_NAMES[key]||"Home";if(key!=="browser"&&key!=="play"){tab.url=tab.url||""}state.activeTabId=tab.id}}
  if(prefix)prefix.textContent=key==="browser"&&params.get("url")?"":"polaris://"+(key==="play"?"games":key);
  if(lock)lock.textContent=key==="browser"&&params.get("url")?"●":"◆";
  document.querySelector("#sidebar").classList.remove("open");renderBrowserTabs();updateBookmarkButton();
