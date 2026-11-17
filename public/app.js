@@ -223,8 +223,20 @@ async function ensureScramjet(){
  if(!("serviceWorker" in navigator))throw new Error("This browser does not support service workers, which Scramjet requires.");
  if(typeof window.$scramjetLoadController!=="function")throw new Error("Scramjet's browser runtime did not load. Check the proxy assets build.");
  if(!window.BareMux?.BareMuxConnection)throw new Error("BareMux did not load. Check the proxy assets build.");
- await navigator.serviceWorker.register("/sw.js",{scope:"/"});
+ const registration=await navigator.serviceWorker.register("/sw.js",{scope:"/",updateViaCache:"none"});
  await navigator.serviceWorker.ready;
+ // An active registration does not guarantee this document is controlled.
+ // Without a controller, proxied URLs can hit the SPA fallback and return Polaris itself.
+ if(!navigator.serviceWorker.controller){
+  await new Promise((resolve,reject)=>{
+   let timer=setTimeout(()=>{cleanup();reject(new Error("The proxy service worker activated but did not take control of this page. Reload Polaris and try again."))},10000);
+   const onChange=()=>{if(navigator.serviceWorker.controller){cleanup();resolve()}};
+   const cleanup=()=>{clearTimeout(timer);navigator.serviceWorker.removeEventListener("controllerchange",onChange)};
+   navigator.serviceWorker.addEventListener("controllerchange",onChange);
+   onChange();
+  });
+ }
+ if(!navigator.serviceWorker.controller)throw new Error("The proxy service worker is not controlling this page. External pages were blocked to prevent Polaris from loading inside itself.");
  const {ScramjetController}=window.$scramjetLoadController();
  const controller=new ScramjetController({files:{wasm:"/scram/scramjet.wasm.wasm",all:"/scram/scramjet.all.js",sync:"/scram/scramjet.sync.js"}});
  await controller.init();
