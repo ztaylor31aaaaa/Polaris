@@ -197,7 +197,7 @@ function polarisGameIconError(img){let list=[];try{list=JSON.parse(img.dataset.i
 function gameTilesMarkup(games){
  return games.map(g=>{
   const community=g.source==="Polaris Games"||String(g.href||"").startsWith("/community-games/");
-  const candidates=community?snubbyGameIconCandidates(g.image,g.href):snubbyGameIconCandidates(g.image,g.href);
+  const candidates=community?(g.image?[g.image]:[]):snubbyGameIconCandidates(g.image,g.href);
   const imageUrl=candidates[0]||"";
   const fallback='<span class="game-tile-icon game-tile-icon-fallback"'+(imageUrl?' hidden':'')+'>'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';
   const image=imageUrl?'<img class="game-tile-image" src="'+esc(imageUrl)+'" data-icon-candidates="'+esc(JSON.stringify(candidates))+'" alt="" loading="lazy" decoding="async" onerror="polarisGameIconError(this)">'+fallback:fallback;
