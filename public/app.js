@@ -133,7 +133,7 @@ async function loadGameCatalogue(){
     name:String(game.name),
     description:String(game.description||game.category||"HTML game"),
     category:String(game.category||game.type||"Game"),
-    image:game.image||game.icon||game.iconUrl||game.cover||game.thumbnail||game.thumb||game.logo||"",
+    image:game.image||game.image_url||game.imageUrl||game.icon||game.icon_url||game.iconUrl||game.app_icon||game.appIcon||game.icon_path||game.iconPath||game.cover||game.coverImage||game.thumbnail||game.thumbnail_url||game.thumbnailUrl||game.thumb||game.logo||game.images||"",
     href:resolveGameUrl(game.src||game.url)
   })).filter(game=>game.href);
 }
@@ -162,33 +162,42 @@ function sortGameEntries(games,mode){
   return Number(seen[bk]||0)-Number(seen[ak]||0);
  });
 }
-function snubbyGameIconCandidates(image){
+function snubbyGameIconCandidates(image,gameUrl=""){
  const values=Array.isArray(image)?image:[image];
  const candidates=[];
  const base="https://sme-library.global.ssl.fastly.net/";
  for(const item of values){
   let value=item;
-  if(value&&typeof value==="object")value=value.url||value.src||value.path||value.icon||value.image||"";
+  if(value&&typeof value==="object")value=value.url||value.src||value.path||value.icon||value.image||value.href||value.filename||value.file||"";
   value=String(value||"").trim();
   if(!value)continue;
+  if(value.startsWith("//")){candidates.push("https:"+value);continue}
   if(/^(https?:|data:|blob:)/i.test(value)){candidates.push(value);continue}
   let clean=value.replace(/\\/g,"/");
   while(clean.startsWith("/"))clean=clean.slice(1);
   const paths=[];
   if(clean.startsWith("data/"))paths.push(clean);
-  else if(clean.startsWith("app-icons/"))paths.push("data/"+clean);
-  else if(clean.startsWith("images/")||clean.startsWith("icons/")||clean.startsWith("assets/"))paths.push("data/"+clean,clean);
+  else if(clean.startsWith("app-icons/"))paths.push("data/"+clean,clean);
+  else if(/^(images|icons|assets)\//i.test(clean))paths.push("data/"+clean,clean);
   else paths.push("data/app-icons/"+clean,"app-icons/"+clean,"data/"+clean,clean);
-  for(const path of paths)candidates.push(base+path);
+  for(const path of paths)candidates.push(new URL(path,base).href);
  }
+ // If Snubby has no usable image for a game, use that game's site favicon
+ // as a final image fallback instead of leaving the tile blank.
+ try{
+  const target=new URL(gameUrl);
+  if(["http:","https:"].includes(target.protocol)){
+   candidates.push("https://www.google.com/s2/favicons?domain_url="+encodeURIComponent(target.origin)+"&sz=128");
+  }
+ }catch{}
  return [...new Set(candidates)];
 }
-function snubbyGameIconUrl(image){return snubbyGameIconCandidates(image)[0]||""}
+function snubbyGameIconUrl(image,gameUrl=""){return snubbyGameIconCandidates(image,gameUrl)[0]||""}
 function polarisGameIconError(img){let list=[];try{list=JSON.parse(img.dataset.iconCandidates||"[]")}catch{}const next=Number(img.dataset.iconAttempt||0)+1;img.dataset.iconAttempt=String(next);if(next<list.length){img.src=list[next];return}img.hidden=true;if(img.nextElementSibling)img.nextElementSibling.hidden=false}
 function gameTilesMarkup(games){
  return games.map(g=>{
   const community=g.source==="Polaris Games"||String(g.href||"").startsWith("/community-games/");
-  const candidates=community?(g.image?[g.image]:[]):snubbyGameIconCandidates(g.image);
+  const candidates=community?snubbyGameIconCandidates(g.image,g.href):snubbyGameIconCandidates(g.image,g.href);
   const imageUrl=candidates[0]||"";
   const fallback='<span class="game-tile-icon game-tile-icon-fallback"'+(imageUrl?' hidden':'')+'>'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';
   const image=imageUrl?'<img class="game-tile-image" src="'+esc(imageUrl)+'" data-icon-candidates="'+esc(JSON.stringify(candidates))+'" alt="" loading="lazy" decoding="async" onerror="polarisGameIconError(this)">'+fallback:fallback;
@@ -204,7 +213,7 @@ async function games(){
  rememberGameEntries(all);
  const categories=[...new Set(all.map(g=>g.category||"Other"))].sort((a,b)=>a.localeCompare(b));
  const saved=readLibrary(),savedMarkup=saved.map(g=>'<div class="library-card"><div class="library-card-icon">▣</div><div class="library-card-copy"><strong>'+esc(g.name)+'</strong><small>'+esc(g.filename)+' · Added '+new Date(g.addedAt).toLocaleDateString()+'</small></div><button class="button button-small" data-launch-local="'+esc(g.id)+'">Open</button></div>').join("");
- return header("Games","Explore, filter and organise your game catalogue.")+'<div class="games-switcher"><button class="games-switch active" data-games-view="catalogue">Discover games <span id="discover-game-count">'+all.length+'</span></button><button class="games-switch" data-games-view="library">My library <span>'+saved.length+'</span></button></div><section class="games-view" id="games-catalogue"><div class="toolbar games-toolbar"><input class="input" id="game-search" placeholder="Search games…" aria-label="Search games"><select class="select" id="game-sort" aria-label="Sort games"><option value="recent">Recently added</option><option value="az">Name: A–Z</option><option value="za">Name: Z–A</option><option value="popular">Most played</option><option value="trending">Trending (7 days)</option></select></div><div class="games-filter-row"><select class="select" id="game-category-filter"><option value="">All categories</option>'+categories.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><select class="select" id="game-source-filter"><option value="">All sources</option><option value="Snubby">Snubby catalogue</option><option value="Polaris Games">Polaris community</option></select><select class="select" id="game-icon-filter"><option value="">All icons</option><option value="yes">Has image</option><option value="no">Fallback icon</option></select><button class="button button-secondary button-small" id="game-filters-reset" type="button">Reset filters</button></div><div class="game-library-grid" id="snubby-game-grid">'+(gameTilesMarkup(sortGameEntries(all,"recent"))||'<div class="empty-state">No games were found in the catalogue.</div>')+'</div><p class="muted" id="game-catalogue-status">Catalogue responses are cached for faster repeat loads. Popularity and trending use launches on this device.</p>'+(catalogueError?'<p class="muted">A game catalogue could not load ('+esc(catalogueError)+'). Other available games are still shown.</p>':'')+'</section><section class="games-view" id="games-library" hidden><div class="library-toolbar"><p class="muted">Games imported on this device are private to this browser.</p><a class="button button-small" href="#tools">Import a game</a></div><div class="library-list">'+(savedMarkup||'<div class="empty-state">Your library is empty. Import an HTML game from Tools.</div>')+'</div></section>';
+ return header("Games","Explore, filter and organise your game catalogue.")+'<div class="games-switcher"><button class="games-switch active" data-games-view="catalogue">Discover games <span id="discover-game-count">'+all.length+'</span></button><button class="games-switch" data-games-view="library">My library <span>'+saved.length+'</span></button></div><section class="games-view" id="games-catalogue"><div class="toolbar games-toolbar"><input class="input" id="game-search" placeholder="Search games…" aria-label="Search games"><select class="select" id="game-sort" aria-label="Sort games"><option value="recent">Recently added</option><option value="az">Name: A–Z</option><option value="za">Name: Z–A</option><option value="popular">Most played</option><option value="trending">Trending (7 days)</option></select></div><div class="games-filter-row"><select class="select" id="game-category-filter"><option value="">All categories</option>'+categories.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><select class="select" id="game-source-filter"><option value="">All sources</option><option value="Snubby">Snubby catalogue</option><option value="Polaris Games">Polaris community</option></select><button class="button button-secondary button-small" id="game-filters-reset" type="button">Reset filters</button></div><div class="game-library-grid" id="snubby-game-grid">'+(gameTilesMarkup(sortGameEntries(all,"recent"))||'<div class="empty-state">No games were found in the catalogue.</div>')+'</div><p class="muted" id="game-catalogue-status">Catalogue responses are cached for faster repeat loads. Popularity and trending use launches on this device.</p>'+(catalogueError?'<p class="muted">A game catalogue could not load ('+esc(catalogueError)+'). Other available games are still shown.</p>':'')+'</section><section class="games-view" id="games-library" hidden><div class="library-toolbar"><p class="muted">Games imported on this device are private to this browser.</p><a class="button button-small" href="#tools">Import a game</a></div><div class="library-list">'+(savedMarkup||'<div class="empty-state">Your library is empty. Import an HTML game from Tools.</div>')+'</div></section>';
 }
 function normaliseBrowseInput(value){
  const raw=String(value||"").trim();if(!raw)return "";
@@ -374,9 +383,9 @@ function bind(page){if(page==="browser"){document.querySelectorAll("[data-web-ur
  if(exactGame){location.hash="games";return}
  openBrowserAddress(normaliseBrowseInput(query));
 });;document.addEventListener("click",e=>{if(!e.target.closest(".home-search-wrap"))results.hidden=true},{once:true})}if(page==="games"){
- const grid=document.querySelector("#snubby-game-grid"),search=document.querySelector("#game-search"),sort=document.querySelector("#game-sort"),category=document.querySelector("#game-category-filter"),source=document.querySelector("#game-source-filter"),icon=document.querySelector("#game-icon-filter");
- const redraw=()=>{const q=search.value.trim().toLowerCase(),ordered=sortGameEntries(state.gameCatalogue||[],sort.value).filter(g=>(g.name+" "+g.description+" "+g.category).toLowerCase().includes(q)&&(!category.value||g.category===category.value)&&(!source.value||(g.source||"Snubby")===source.value)&&(!icon.value||(icon.value==="yes"?Boolean(g.image):!g.image)));grid.innerHTML=gameTilesMarkup(ordered)||'<div class="empty-state">No games match these filters.</div>';document.querySelector("#discover-game-count").textContent=ordered.length};
- [search,sort,category,source,icon].forEach(el=>el.addEventListener(el===search?"input":"change",redraw));document.querySelector("#game-filters-reset")?.addEventListener("click",()=>{search.value="";sort.value="recent";category.value="";source.value="";icon.value="";redraw()});
+ const grid=document.querySelector("#snubby-game-grid"),search=document.querySelector("#game-search"),sort=document.querySelector("#game-sort"),category=document.querySelector("#game-category-filter"),source=document.querySelector("#game-source-filter");
+ const redraw=()=>{const q=search.value.trim().toLowerCase(),ordered=sortGameEntries(state.gameCatalogue||[],sort.value).filter(g=>(g.name+" "+g.description+" "+g.category).toLowerCase().includes(q)&&(!category.value||g.category===category.value)&&(!source.value||(g.source||"Snubby")===source.value));grid.innerHTML=gameTilesMarkup(ordered)||'<div class="empty-state">No games match these filters.</div>';document.querySelector("#discover-game-count").textContent=ordered.length};
+ [search,sort,category,source].forEach(el=>el.addEventListener(el===search?"input":"change",redraw));document.querySelector("#game-filters-reset")?.addEventListener("click",()=>{search.value="";sort.value="recent";category.value="";source.value="";redraw()});
  grid.addEventListener("click",e=>{const tile=e.target.closest("[data-game-url]");if(!tile)return;const game=(state.gameCatalogue||[]).find(g=>String(g.id||g.href)===tile.dataset.gameId||g.href===tile.dataset.gameUrl);if(game)recordGameLaunch(game);location.hash="play?url="+encodeURIComponent(tile.dataset.gameUrl)+"&name="+encodeURIComponent(tile.dataset.gameName)});
  document.querySelectorAll("[data-games-view]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-games-view]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".games-view").forEach(x=>x.hidden=x.id!=="games-"+b.dataset.gamesView)}));
  document.querySelectorAll("[data-launch-local]").forEach(b=>b.addEventListener("click",()=>{const game=readLibrary().find(x=>x.id===b.dataset.launchLocal);if(!game)return;const blob=new Blob([game.html],{type:"text/html"}),url=URL.createObjectURL(blob);location.hash="play?url="+encodeURIComponent(url)+"&name="+encodeURIComponent(game.name)}));
