@@ -170,8 +170,8 @@ function snubbyGameIconCandidates(image){
   if(value&&typeof value==="object")value=value.url||value.src||value.path||value.icon||value.image||value.href||value.filename||value.file||"";
   value=String(value||"").trim();
   if(!value)return "";
-  if(/^https?:\\/\\//i.test(value)||/^(data:|blob:)/i.test(value))return value;
-  let path=value.replace(/^\\/+/, "");
+  if(/^https?:\/\//i.test(value)||/^(data:|blob:)/i.test(value))return value;
+  let path=value.replace(/^\/+/, "");
   if(path.toLowerCase().startsWith("data/app-icons/"))path=path.slice(15);
   else if(path.toLowerCase().startsWith("appicon/"))path=path.slice(8);
   return "https://sme-library.global.ssl.fastly.net/data/app-icons/"+path;
