@@ -162,42 +162,42 @@ function sortGameEntries(games,mode){
   return Number(seen[bk]||0)-Number(seen[ak]||0);
  });
 }
-function snubbyGameIconCandidates(image,gameUrl=""){
+function snubbyGameIconCandidates(image){
+ if(!image)return [];
  const values=Array.isArray(image)?image:[image];
- const candidates=[];
- const base="https://sme-library.global.ssl.fastly.net/";
- for(const item of values){
+ return [...new Set(values.map(item=>{
   let value=item;
   if(value&&typeof value==="object")value=value.url||value.src||value.path||value.icon||value.image||value.href||value.filename||value.file||"";
   value=String(value||"").trim();
-  if(!value)continue;
-  if(value.startsWith("//")){candidates.push("https:"+value);continue}
-  if(/^(https?:|data:|blob:)/i.test(value)){candidates.push(value);continue}
-  let clean=value.replace(/\\/g,"/");
-  while(clean.startsWith("/"))clean=clean.slice(1);
-  const paths=[];
-  if(clean.startsWith("data/"))paths.push(clean);
-  else if(clean.startsWith("app-icons/"))paths.push("data/"+clean,clean);
-  else if(/^(images|icons|assets)\//i.test(clean))paths.push("data/"+clean,clean);
-  else paths.push("data/app-icons/"+clean,"app-icons/"+clean,"data/"+clean,clean);
-  for(const path of paths)candidates.push(new URL(path,base).href);
- }
- // If Snubby has no usable image for a game, use that game's site favicon
- // as a final image fallback instead of leaving the tile blank.
- try{
-  const target=new URL(gameUrl);
-  if(["http:","https:"].includes(target.protocol)){
-   candidates.push("https://www.google.com/s2/favicons?domain_url="+encodeURIComponent(target.origin)+"&sz=128");
-  }
- }catch{}
- return [...new Set(candidates)];
+  if(!value)return "";
+  if(/^https?:\\/\\//i.test(value)||/^(data:|blob:)/i.test(value))return value;
+  let path=value.replace(/^\\/+/, "");
+  if(path.toLowerCase().startsWith("data/app-icons/"))path=path.slice(15);
+  else if(path.toLowerCase().startsWith("appicon/"))path=path.slice(8);
+  return "https://sme-library.global.ssl.fastly.net/data/app-icons/"+path;
+ }).filter(Boolean))];
 }
-function snubbyGameIconUrl(image,gameUrl=""){return snubbyGameIconCandidates(image,gameUrl)[0]||""}
-function polarisGameIconError(img){let list=[];try{list=JSON.parse(img.dataset.iconCandidates||"[]")}catch{}const next=Number(img.dataset.iconAttempt||0)+1;img.dataset.iconAttempt=String(next);if(next<list.length){img.src=list[next];return}img.hidden=true;if(img.nextElementSibling)img.nextElementSibling.hidden=false}
+function polarisGameIconError(img){
+ let list=[];try{list=JSON.parse(img.dataset.iconCandidates||"[]")}catch{}
+ const next=Number(img.dataset.iconAttempt||0)+1;
+ img.dataset.iconAttempt=String(next);
+ if(next<list.length){img.src=list[next];return}
+ img.hidden=true;
+ if(img.nextElementSibling)img.nextElementSibling.hidden=false
+}
 function gameTilesMarkup(games){
+ const normalise=value=>String(value||"").toLowerCase().replace(/[^a-z0-9]+/g,"");
  return games.map(g=>{
   const community=g.source==="Polaris Games"||String(g.href||"").startsWith("/community-games/");
-  const candidates=community?(g.image?[g.image]:[]):snubbyGameIconCandidates(g.image,g.href);
+  let candidates=community?(g.image?[g.image]:[]):snubbyGameIconCandidates(g.image);
+  if(!community){
+   const match=games.find(other=>(other.source==="Polaris Games"||String(other.href||"").startsWith("/community-games/"))&&(
+    normalise(other.name)===normalise(g.name)||
+    normalise(other.id).replace(/^community/,"")===normalise(g.id)
+   ));
+   if(match&&match.image)candidates=[...candidates,match.image];
+  }
+  candidates=[...new Set(candidates)];
   const imageUrl=candidates[0]||"";
   const fallback='<span class="game-tile-icon game-tile-icon-fallback"'+(imageUrl?' hidden':'')+'>'+esc(g.icon||(g.name.slice(0,2).toUpperCase()))+'</span>';
   const image=imageUrl?'<img class="game-tile-image" src="'+esc(imageUrl)+'" data-icon-candidates="'+esc(JSON.stringify(candidates))+'" alt="" loading="lazy" decoding="async" onerror="polarisGameIconError(this)">'+fallback:fallback;
