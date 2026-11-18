@@ -133,7 +133,7 @@ async function loadGameCatalogue(){
     name:String(game.name),
     description:String(game.description||game.category||"HTML game"),
     category:String(game.category||game.type||"Game"),
-    image:game.image||game.cover||game.thumb||"",
+    image:game.image||game.icon||game.iconUrl||game.cover||game.thumbnail||game.thumb||game.logo||"",
     href:resolveGameUrl(game.src||game.url)
   })).filter(game=>game.href);
 }
@@ -162,7 +162,27 @@ function sortGameEntries(games,mode){
   return Number(seen[bk]||0)-Number(seen[ak]||0);
  });
 }
-function snubbyGameIconCandidates(image){const value=String(image||"").trim();if(!value)return [];if(/^(https?:|data:|blob:)/i.test(value))return [value];let clean=value;while(clean.startsWith("/"))clean=clean.slice(1);const base="https://sme-library.global.ssl.fastly.net/",paths=[];if(clean.startsWith("data/"))paths.push(clean);if(clean.startsWith("app-icons/"))paths.push("data/"+clean);paths.push("data/app-icons/"+clean,clean);return [...new Set(paths.map(path=>base+path))]}
+function snubbyGameIconCandidates(image){
+ const values=Array.isArray(image)?image:[image];
+ const candidates=[];
+ const base="https://sme-library.global.ssl.fastly.net/";
+ for(const item of values){
+  let value=item;
+  if(value&&typeof value==="object")value=value.url||value.src||value.path||value.icon||value.image||"";
+  value=String(value||"").trim();
+  if(!value)continue;
+  if(/^(https?:|data:|blob:)/i.test(value)){candidates.push(value);continue}
+  let clean=value.replace(/\\/g,"/");
+  while(clean.startsWith("/"))clean=clean.slice(1);
+  const paths=[];
+  if(clean.startsWith("data/"))paths.push(clean);
+  else if(clean.startsWith("app-icons/"))paths.push("data/"+clean);
+  else if(clean.startsWith("images/")||clean.startsWith("icons/")||clean.startsWith("assets/"))paths.push("data/"+clean,clean);
+  else paths.push("data/app-icons/"+clean,"app-icons/"+clean,"data/"+clean,clean);
+  for(const path of paths)candidates.push(base+path);
+ }
+ return [...new Set(candidates)];
+}
 function snubbyGameIconUrl(image){return snubbyGameIconCandidates(image)[0]||""}
 function polarisGameIconError(img){let list=[];try{list=JSON.parse(img.dataset.iconCandidates||"[]")}catch{}const next=Number(img.dataset.iconAttempt||0)+1;img.dataset.iconAttempt=String(next);if(next<list.length){img.src=list[next];return}img.hidden=true;if(img.nextElementSibling)img.nextElementSibling.hidden=false}
 function gameTilesMarkup(games){
@@ -179,13 +199,12 @@ async function games(){
  let catalogue=[],community=[],catalogueError="";
  try{catalogue=await loadGameCatalogue()}catch(error){catalogueError=error.message}
  try{community=await loadCommunityGameCatalogue()}catch(error){catalogueError+=(catalogueError?" · ":"")+error.message}
- const local=[{name:"Locked Quiz",description:"Launch the Locked Quiz game.",category:"Polaris",href:"/locked-quiz.html",icon:"LQ",source:"Polaris"},{name:"Math Lesson 1",description:"Open Math Lesson 1.",category:"Polaris",href:"/games/snubby/snubby/mathlesson1.html",icon:"M1",source:"Polaris"}];
- const seen=new Set(catalogue.map(g=>g.href)),localGames=local.filter(g=>!seen.has(g.href)),all=[...catalogue,...localGames,...community];
+ const all=[...catalogue,...community];
  state.gameCatalogue=all;state.games=all.map(g=>({name:g.name,category:g.category,url:g.href,description:g.description}));
  rememberGameEntries(all);
  const categories=[...new Set(all.map(g=>g.category||"Other"))].sort((a,b)=>a.localeCompare(b));
  const saved=readLibrary(),savedMarkup=saved.map(g=>'<div class="library-card"><div class="library-card-icon">▣</div><div class="library-card-copy"><strong>'+esc(g.name)+'</strong><small>'+esc(g.filename)+' · Added '+new Date(g.addedAt).toLocaleDateString()+'</small></div><button class="button button-small" data-launch-local="'+esc(g.id)+'">Open</button></div>').join("");
- return header("Games","Explore, filter and organise your game catalogue.")+'<div class="games-switcher"><button class="games-switch active" data-games-view="catalogue">Discover games <span id="discover-game-count">'+all.length+'</span></button><button class="games-switch" data-games-view="library">My library <span>'+saved.length+'</span></button></div><section class="games-view" id="games-catalogue"><div class="toolbar games-toolbar"><input class="input" id="game-search" placeholder="Search games…" aria-label="Search games"><select class="select" id="game-sort" aria-label="Sort games"><option value="recent">Recently added</option><option value="az">Name: A–Z</option><option value="za">Name: Z–A</option><option value="popular">Most played</option><option value="trending">Trending (7 days)</option></select></div><div class="games-filter-row"><select class="select" id="game-category-filter"><option value="">All categories</option>'+categories.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><select class="select" id="game-source-filter"><option value="">All sources</option><option value="Snubby">Snubby catalogue</option><option value="Polaris Games">Polaris community</option><option value="Polaris">Built-in games</option></select><select class="select" id="game-icon-filter"><option value="">All icons</option><option value="yes">Has image</option><option value="no">Fallback icon</option></select><button class="button button-secondary button-small" id="game-filters-reset" type="button">Reset filters</button></div><div class="game-library-grid" id="snubby-game-grid">'+(gameTilesMarkup(sortGameEntries(all,"recent"))||'<div class="empty-state">No games were found in the catalogue.</div>')+'</div><p class="muted" id="game-catalogue-status">Catalogue responses are cached for faster repeat loads. Popularity and trending use launches on this device.</p>'+(catalogueError?'<p class="muted">A game catalogue could not load ('+esc(catalogueError)+'). Other available games are still shown.</p>':'')+'</section><section class="games-view" id="games-library" hidden><div class="library-toolbar"><p class="muted">Games imported on this device are private to this browser.</p><a class="button button-small" href="#tools">Import a game</a></div><div class="library-list">'+(savedMarkup||'<div class="empty-state">Your library is empty. Import an HTML game from Tools.</div>')+'</div></section>';
+ return header("Games","Explore, filter and organise your game catalogue.")+'<div class="games-switcher"><button class="games-switch active" data-games-view="catalogue">Discover games <span id="discover-game-count">'+all.length+'</span></button><button class="games-switch" data-games-view="library">My library <span>'+saved.length+'</span></button></div><section class="games-view" id="games-catalogue"><div class="toolbar games-toolbar"><input class="input" id="game-search" placeholder="Search games…" aria-label="Search games"><select class="select" id="game-sort" aria-label="Sort games"><option value="recent">Recently added</option><option value="az">Name: A–Z</option><option value="za">Name: Z–A</option><option value="popular">Most played</option><option value="trending">Trending (7 days)</option></select></div><div class="games-filter-row"><select class="select" id="game-category-filter"><option value="">All categories</option>'+categories.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><select class="select" id="game-source-filter"><option value="">All sources</option><option value="Snubby">Snubby catalogue</option><option value="Polaris Games">Polaris community</option></select><select class="select" id="game-icon-filter"><option value="">All icons</option><option value="yes">Has image</option><option value="no">Fallback icon</option></select><button class="button button-secondary button-small" id="game-filters-reset" type="button">Reset filters</button></div><div class="game-library-grid" id="snubby-game-grid">'+(gameTilesMarkup(sortGameEntries(all,"recent"))||'<div class="empty-state">No games were found in the catalogue.</div>')+'</div><p class="muted" id="game-catalogue-status">Catalogue responses are cached for faster repeat loads. Popularity and trending use launches on this device.</p>'+(catalogueError?'<p class="muted">A game catalogue could not load ('+esc(catalogueError)+'). Other available games are still shown.</p>':'')+'</section><section class="games-view" id="games-library" hidden><div class="library-toolbar"><p class="muted">Games imported on this device are private to this browser.</p><a class="button button-small" href="#tools">Import a game</a></div><div class="library-list">'+(savedMarkup||'<div class="empty-state">Your library is empty. Import an HTML game from Tools.</div>')+'</div></section>';
 }
 function normaliseBrowseInput(value){
  const raw=String(value||"").trim();if(!raw)return "";
