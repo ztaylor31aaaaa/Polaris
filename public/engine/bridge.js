@@ -39,7 +39,7 @@ if (actions) actions.prepend(button);
 const panel = document.createElement("section");
 panel.id = "polaris-engine-panel";
 panel.hidden = true;
-panel.innerHTML = '<h2>Polaris Engine <small>0.1.0</small></h2><p>New modular runtime foundation. This panel reports browser capabilities; it does not proxy or rewrite website traffic.</p><div id="polaris-engine-results">Diagnostics have not been run.</div><p><button id="polaris-engine-run" type="button">Run diagnostics</button> <button id="polaris-engine-close" type="button">Close</button></p>';
+panel.innerHTML = '<h2>Polaris Engine <small>0.2.0</small></h2><p>Expanded runtime foundation: per-tab lifecycle, settings, permissions, extensions, commands, telemetry and document adapters. This panel reports browser capabilities; it does not proxy or rewrite website traffic.</p><div id="polaris-engine-results">Diagnostics have not been run.</div><p><button id="polaris-engine-run" type="button">Run diagnostics</button> <button id="polaris-engine-close" type="button">Close</button></p>';
 document.body.append(panel);
 button.addEventListener("click", async () => {
   panel.hidden = !panel.hidden;
@@ -60,7 +60,8 @@ async function run() {
 }
 window.PolarisEngine = Object.freeze({
   name: "Polaris Engine",
-  version: "0.1.0",
+  version: "0.2.0",
   resolveAddress,
-  runDiagnostics
+  runDiagnostics,
+  capabilities: Object.freeze(["tab-runtime", "runtime-manager", "disposable-resources", "permission-manager", "origin-policy", "settings-manager", "extension-registry", "command-registry", "performance-monitor", "view-adapter"])
 });
