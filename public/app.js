@@ -249,7 +249,7 @@ function saveTabUrl(url){
 async function ensureScramjet(){
  if(state.scramjetReady&&state.scramjet&&state.bareMux)return;
  if(!("serviceWorker" in navigator))throw new Error("This browser does not support service workers, which Scramjet requires.");
- if(typeof window.$scramjetLoadController!=="function")throw new Error("Scramjet's browser runtime did not load. Check the proxy assets build.");
+ if(typeof window.$scramjetLoadController!=="function")throw new Error("Legacy proxy browsing is disabled in this build. Polaris Engine features remain available; no proxy runtime was started.");
  if(!window.BareMux?.BareMuxConnection)throw new Error("BareMux did not load. Check the proxy assets build.");
  const registration=await navigator.serviceWorker.register("/sw.js",{scope:"/",updateViaCache:"none"});
  await navigator.serviceWorker.ready;
