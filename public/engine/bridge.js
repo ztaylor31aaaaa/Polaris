@@ -13,9 +13,11 @@ const styles = `
 function resolveAddress(input, searchUrl = "https://www.google.com/search?q=%s") {
   const value = String(input ?? "").trim();
   if (!value) throw new TypeError("Enter a website address or search term.");
-  const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(value);
-  const looksLikeHost = !/\s/.test(value) && (value.includes(".") || value.startsWith("localhost"));
-  const candidate = hasScheme ? value : looksLikeHost ? "https://" + value : null;
+  const hasScheme = /^[a-z][a-z\d+.-]*:/i.test(value);
+  const hasWebScheme = /^https?:\/\//i.test(value);
+  if (hasScheme && !hasWebScheme) throw new TypeError("Only HTTP and HTTPS addresses are supported.");
+  const looksLikeHost = /^(localhost|\[[0-9a-f:]+\]|[^\s/]+\.[a-z]{2,})(:\d+)?([/?#].*)?$/i.test(value);
+  const candidate = hasWebScheme ? value : looksLikeHost ? "https://" + value : null;
   if (!candidate) {
     if (!searchUrl.includes("%s")) throw new TypeError("Search URL must contain %s.");
     return new URL(searchUrl.replace("%s", encodeURIComponent(value))).href;
