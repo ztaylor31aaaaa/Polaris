@@ -3,66 +3,33 @@ import * as EngineAPI from "./modules/index.js";
 
 const styles = `
 #polaris-engine-button{border:1px solid var(--line,#333);background:var(--panel,#171a22);color:var(--text,#fff);border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;cursor:pointer}
-#polaris-engine-panel{position:fixed;z-index:99999;right:18px;top:88px;width:min(390px,calc(100vw - 36px));max-height:70vh;overflow:auto;background:var(--panel,#171a22);color:var(--text,#fff);border:1px solid var(--line,#333);border-radius:14px;padding:16px;box-shadow:0 18px 60px #0008;font:13px/1.5 system-ui,sans-serif}
-#polaris-engine-panel[hidden]{display:none}
-#polaris-engine-panel h2{font-size:16px;margin:0 0 4px}
-#polaris-engine-panel p{color:var(--muted,#aaa);margin:4px 0 12px}
-#polaris-engine-panel .pe-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line,#333)}
+#polaris-engine-panel{position:fixed;z-index:99999;right:18px;top:88px;width:min(430px,calc(100vw - 36px));max-height:78vh;overflow:auto;background:var(--panel,#171a22);color:var(--text,#fff);border:1px solid var(--line,#333);border-radius:14px;padding:16px;box-shadow:0 18px 60px #0008;font:13px/1.5 system-ui,sans-serif}
+#polaris-engine-panel[hidden]{display:none}#polaris-engine-panel h2{font-size:16px;margin:0 0 4px}#polaris-engine-panel h3{font-size:13px;margin:16px 0 5px}
+#polaris-engine-panel p{color:var(--muted,#aaa);margin:4px 0 10px}#polaris-engine-panel .pe-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line,#333)}
 #polaris-engine-panel .pe-pass{color:#39c98a}#polaris-engine-panel .pe-warn{color:#e6b85c}
-#polaris-engine-panel button{border:1px solid var(--line,#444);background:transparent;color:inherit;border-radius:8px;padding:7px 10px;cursor:pointer}
+#polaris-engine-panel button,#polaris-engine-panel select{border:1px solid var(--line,#444);background:transparent;color:inherit;border-radius:8px;padding:7px 10px;cursor:pointer}
+#polaris-engine-panel input[type=file]{max-width:100%;margin:8px 0}#polaris-engine-panel .pe-actions{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+#polaris-engine-panel .pe-note{font-size:11px;opacity:.8}#polaris-engine-panel .pe-status{padding:8px;border:1px solid var(--line,#444);border-radius:8px}
 `;
-function resolveAddress(input, searchUrl = "https://www.google.com/search?q=%s") {
-  const value = String(input ?? "").trim();
-  if (!value) throw new TypeError("Enter a website address or search term.");
-  const hasScheme = /^[a-z][a-z\\d+.-]*:/i.test(value);
-  const hasWebScheme = /^https?:\\/\\//i.test(value);
-  if (hasScheme && !hasWebScheme) throw new TypeError("Only HTTP and HTTPS addresses are supported.");
-  const looksLikeHost = /^(localhost|\\[[0-9a-f:]+\\]|[^\\s/]+\\.[a-z]{2,})(:\\d+)?([/?#].*)?$/i.test(value);
-  const candidate = hasWebScheme ? value : looksLikeHost ? "https://" + value : null;
-  if (!candidate) {
-    if (!searchUrl.includes("%s")) throw new TypeError("Search URL must contain %s.");
-    return new URL(searchUrl.replace("%s", encodeURIComponent(value))).href;
-  }
-  const url = new URL(candidate);
-  if (!["http:", "https:"].includes(url.protocol)) throw new TypeError("Only HTTP and HTTPS addresses are supported.");
-  return url.href;
-}
-const style = document.createElement("style");
-style.textContent = styles;
-document.head.append(style);
-const button = document.createElement("button");
-button.id = "polaris-engine-button";
-button.type = "button";
-button.textContent = "Engine";
-button.title = "Polaris Engine diagnostics";
-const actions = document.querySelector(".browser-window-actions");
-if (actions) actions.prepend(button);
-const panel = document.createElement("section");
-panel.id = "polaris-engine-panel";
-panel.hidden = true;
-panel.innerHTML = '<h2>Polaris Engine <small>0.4.1</small></h2><p>Standalone browser APIs, view lifecycle diagnostics and transport error reporting. Legacy proxy transport remains disabled in this build.</p><div id="polaris-engine-results">Diagnostics have not been run.</div><p><button id="polaris-engine-run" type="button">Run diagnostics</button> <button id="polaris-engine-close" type="button">Close</button></p>';
+const style=document.createElement("style");style.textContent=styles;document.head.append(style);
+const button=document.createElement("button");button.id="polaris-engine-button";button.type="button";button.textContent="Engine";button.title="Polaris Engine diagnostics and developer settings";
+const actions=document.querySelector(".browser-window-actions");if(actions)actions.prepend(button);
+const panel=document.createElement("section");panel.id="polaris-engine-panel";panel.hidden=true;
+panel.innerHTML='<h2>Polaris Engine <small>0.5.0</small></h2><p>Standalone browser APIs, explicit transport-provider settings and portable-data migration.</p><h3>Transport provider</h3><div class="pe-status" id="pe-transport-status">Transport disabled. No provider is installed.</div><div class="pe-actions"><label><input id="pe-transport-enabled" type="checkbox"> Enable selected provider</label><label><input id="pe-transport-auto" type="checkbox"> Initialise on startup</label></div><select id="pe-transport-provider" aria-label="Transport provider"><option value="">No providers registered</option></select><div class="pe-actions"><button id="pe-transport-apply" type="button">Apply transport settings</button><button id="pe-transport-connect" type="button">Initialise provider</button></div><p class="pe-note">Providers must be explicitly registered by the host application. Polaris ships with transport disabled and does not include a proxy provider.</p><h3>Import from another browser setup</h3><p>Select a JSON data export. Preview it before merging bookmarks, history, tabs and supported preferences.</p><input id="pe-import-file" type="file" accept=".json,application/json"><div class="pe-status" id="pe-import-preview">No file selected.</div><div class="pe-actions"><button id="pe-import-apply" type="button" disabled>Import and merge data</button><button id="pe-export-data" type="button">Export Polaris data</button></div><p class="pe-note">Scramjet and Ultraviolet are runtimes, not standard data-export formats. Import their host app's JSON export or a compatible bookmarks export. Cookies, sign-in tokens and site storage are never imported.</p><h3>Browser diagnostics</h3><div id="polaris-engine-results">Diagnostics have not been run.</div><p class="pe-actions"><button id="polaris-engine-run" type="button">Run diagnostics</button><button id="polaris-engine-close" type="button">Close</button></p>';
 document.body.append(panel);
-button.addEventListener("click", async () => {
-  panel.hidden = !panel.hidden;
-  if (!panel.hidden && !panel.dataset.checked) await run();
-});
-panel.querySelector("#polaris-engine-close").addEventListener("click", () => { panel.hidden = true; });
-panel.querySelector("#polaris-engine-run").addEventListener("click", run);
-async function run() {
-  const target = panel.querySelector("#polaris-engine-results");
-  target.textContent = "Checking browser capabilities…";
-  try {
-    const report = await runDiagnostics();
-    target.innerHTML = report.checks.map(item => '<div class="pe-row"><span>' + item.name + '</span><strong class="pe-' + item.status + '">' + item.status.toUpperCase() + '</strong></div>').join("");
-    panel.dataset.checked = "true";
-  } catch (error) { target.textContent = "Diagnostics failed: " + error.message; }
-}
-window.PolarisEngine = Object.freeze({
-  ...EngineAPI,
-  api: EngineAPI,
-  name: "Polaris Engine",
-  version: "0.4.1",
-  resolveAddress,
-  runDiagnostics,
-  capabilities: Object.freeze(["tab-runtime", "runtime-manager", "disposable-resources", "permission-manager", "origin-policy", "settings-manager", "extension-registry", "command-registry", "performance-monitor", "view-adapter", "view-error-events", "platform-detection", "worker-manager", "message-rpc", "cache-store", "dom-observer", "url-tools", "mime-utils", "frame-controller", "plugin-manager", "url-watcher"])
-});
+const transport=new EngineAPI.TransportProviderManager({enabled:false});
+const settings=new EngineAPI.SettingsManager();
+let importPreview=null;
+const $=selector=>panel.querySelector(selector);
+function updateTransportUI(){const providers=transport.list();const select=$("#pe-transport-provider");const previous=select.value;select.innerHTML=providers.length?providers.map(item=>'<option value="'+String(item.id).replace(/["&<>]/g,c=>({"&":"&amp;",'"':"&quot;","<":"&lt;",">":"&gt;"}[c]))+'">'+String(item.name).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))+'</option>').join(""):'<option value="">No providers registered</option>';if(providers.some(p=>p.id===previous))select.value=previous;else if(providers.some(p=>p.id===settings.get("transportProvider")))select.value=settings.get("transportProvider");$("#pe-transport-enabled").checked=settings.get("transportEnabled");$("#pe-transport-auto").checked=settings.get("transportAutoInitialise");const s=transport.status();$("#pe-transport-status").textContent="State: "+s.state+" · Provider: "+(s.provider||s.selected||"none")+" · "+(providers.length?"provider(s) registered":"no providers installed");}
+button.addEventListener("click",async()=>{panel.hidden=!panel.hidden;if(!panel.hidden&&!panel.dataset.checked)await run();});
+$("#polaris-engine-close").addEventListener("click",()=>{panel.hidden=true;});
+$("#polaris-engine-run").addEventListener("click",run);
+async function run(){const target=$("#polaris-engine-results");target.textContent="Checking browser capabilities…";try{const report=await runDiagnostics();target.innerHTML=report.checks.map(item=>'<div class="pe-row"><span>'+item.name+'</span><strong class="pe-'+item.status+'">'+item.status.toUpperCase()+'</strong></div>').join("");panel.dataset.checked="true";}catch(error){target.textContent="Diagnostics failed: "+error.message;}}
+$("#pe-transport-apply").addEventListener("click",async()=>{try{const enabled=$("#pe-transport-enabled").checked;const selected=$("#pe-transport-provider").value||null;const autoInitialise=$("#pe-transport-auto").checked;if(enabled&&!selected)throw Error("Register and select a provider before enabling transport.");settings.setMany({transportEnabled:enabled,transportProvider:selected||"",transportAutoInitialise:autoInitialise});await transport.configure({enabled,selected,autoInitialise});updateTransportUI();}catch(error){$("#pe-transport-status").textContent="Transport setting error: "+error.message;}});
+$("#pe-transport-connect").addEventListener("click",async()=>{try{await transport.initialise();updateTransportUI();}catch(error){$("#pe-transport-status").textContent="Provider initialisation failed: "+error.message;}});
+$("#pe-import-file").addEventListener("change",async event=>{importPreview=null;$("#pe-import-apply").disabled=true;const file=event.target.files?.[0];if(!file){$("#pe-import-preview").textContent="No file selected.";return;}try{const raw=await file.text();importPreview=EngineAPI.inspectMigration(raw);const c=importPreview.counts;$("#pe-import-preview").textContent="Detected: "+importPreview.source+" · "+c.bookmarks+" bookmarks · "+c.history+" history entries · "+c.tabs+" tabs · "+c.settings+" preferences";$("#pe-import-apply").disabled=false;}catch(error){$("#pe-import-preview").textContent="Could not read import: "+error.message;}});
+$("#pe-import-apply").addEventListener("click",()=>{if(!importPreview)return;try{const currentBookmarks=JSON.parse(localStorage.getItem("polaris-bookmarks")||"[]");const currentHistory=JSON.parse(localStorage.getItem("polaris-history")||"[]");const currentTabs=JSON.parse(localStorage.getItem("polaris-tabs")||"[]");const currentSettings=JSON.parse(localStorage.getItem("polaris-settings")||"{}");const result=EngineAPI.applyMigration(importPreview,{bookmarks:currentBookmarks,history:currentHistory,tabs:currentTabs,settings:currentSettings,mode:"merge"});localStorage.setItem("polaris-bookmarks",JSON.stringify(result.bookmarks));localStorage.setItem("polaris-history",JSON.stringify(result.history));if(result.tabs.length)localStorage.setItem("polaris-tabs",JSON.stringify(result.tabs.map((tab,index)=>({id:crypto.randomUUID(),...tab,route:tab.url?"browser?url="+encodeURIComponent(tab.url):"home",page:tab.url?"browser":"home",frameObj:null,loaded:false}))));localStorage.setItem("polaris-settings",JSON.stringify(result.settings));$("#pe-import-preview").textContent="Imported "+importPreview.counts.bookmarks+" bookmarks, "+importPreview.counts.history+" history entries and "+importPreview.counts.tabs+" tabs. Reload Polaris to apply the restored tabs.";$("#pe-import-apply").disabled=true;window.dispatchEvent(new CustomEvent("polaris:data-imported",{detail:importPreview.counts}));}catch(error){$("#pe-import-preview").textContent="Import failed: "+error.message;}});
+$("#pe-export-data").addEventListener("click",()=>{const data=EngineAPI.exportPortableData({bookmarks:JSON.parse(localStorage.getItem("polaris-bookmarks")||"[]"),history:JSON.parse(localStorage.getItem("polaris-history")||"[]"),tabs:JSON.parse(localStorage.getItem("polaris-tabs")||"[]"),settings:JSON.parse(localStorage.getItem("polaris-settings")||"{}")});const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download="polaris-portable-data.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+window.PolarisEngine=Object.freeze({...EngineAPI,api:EngineAPI,name:"Polaris Engine",version:"0.5.0",resolveAddress:EngineAPI.resolveAddress,runDiagnostics,transport,capabilities:Object.freeze(["tab-runtime","runtime-manager","disposable-resources","permission-manager","origin-policy","settings-manager","extension-registry","command-registry","performance-monitor","view-adapter","view-error-events","platform-detection","worker-manager","message-rpc","cache-store","dom-observer","url-tools","mime-utils","frame-controller","plugin-manager","url-watcher","transport-provider-manager","portable-data-migration"])});
+updateTransportUI();
