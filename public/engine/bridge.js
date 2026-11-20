@@ -14,10 +14,10 @@ const styles = `
 function resolveAddress(input, searchUrl = "https://www.google.com/search?q=%s") {
   const value = String(input ?? "").trim();
   if (!value) throw new TypeError("Enter a website address or search term.");
-  const hasScheme = /^[a-z][a-z\d+.-]*:/i.test(value);
-  const hasWebScheme = /^https?:\/\//i.test(value);
+  const hasScheme = /^[a-z][a-z\\d+.-]*:/i.test(value);
+  const hasWebScheme = /^https?:\\/\\//i.test(value);
   if (hasScheme && !hasWebScheme) throw new TypeError("Only HTTP and HTTPS addresses are supported.");
-  const looksLikeHost = /^(localhost|\[[0-9a-f:]+\]|[^\s/]+\.[a-z]{2,})(:\d+)?([/?#].*)?$/i.test(value);
+  const looksLikeHost = /^(localhost|\\[[0-9a-f:]+\\]|[^\\s/]+\\.[a-z]{2,})(:\\d+)?([/?#].*)?$/i.test(value);
   const candidate = hasWebScheme ? value : looksLikeHost ? "https://" + value : null;
   if (!candidate) {
     if (!searchUrl.includes("%s")) throw new TypeError("Search URL must contain %s.");
@@ -40,7 +40,7 @@ if (actions) actions.prepend(button);
 const panel = document.createElement("section");
 panel.id = "polaris-engine-panel";
 panel.hidden = true;
-panel.innerHTML = '<h2>Polaris Engine <small>0.4.0</small></h2><p>Expanded runtime foundation: per-tab lifecycle, settings, permissions, extensions, commands, telemetry and document adapters. The legacy proxy runtime is disabled in this build. This panel reports browser capabilities and the standalone Polaris Engine APIs.</p><div id="polaris-engine-results">Diagnostics have not been run.</div><p><button id="polaris-engine-run" type="button">Run diagnostics</button> <button id="polaris-engine-close" type="button">Close</button></p>';
+panel.innerHTML = '<h2>Polaris Engine <small>0.4.1</small></h2><p>Standalone browser APIs, view lifecycle diagnostics and transport error reporting. Legacy proxy transport remains disabled in this build.</p><div id="polaris-engine-results">Diagnostics have not been run.</div><p><button id="polaris-engine-run" type="button">Run diagnostics</button> <button id="polaris-engine-close" type="button">Close</button></p>';
 document.body.append(panel);
 button.addEventListener("click", async () => {
   panel.hidden = !panel.hidden;
@@ -55,16 +55,14 @@ async function run() {
     const report = await runDiagnostics();
     target.innerHTML = report.checks.map(item => '<div class="pe-row"><span>' + item.name + '</span><strong class="pe-' + item.status + '">' + item.status.toUpperCase() + '</strong></div>').join("");
     panel.dataset.checked = "true";
-  } catch (error) {
-    target.textContent = "Diagnostics failed: " + error.message;
-  }
+  } catch (error) { target.textContent = "Diagnostics failed: " + error.message; }
 }
 window.PolarisEngine = Object.freeze({
   ...EngineAPI,
   api: EngineAPI,
   name: "Polaris Engine",
-  version: "0.4.0",
+  version: "0.4.1",
   resolveAddress,
   runDiagnostics,
-  capabilities: Object.freeze(["tab-runtime", "runtime-manager", "disposable-resources", "permission-manager", "origin-policy", "settings-manager", "extension-registry", "command-registry", "performance-monitor", "view-adapter", "platform-detection", "worker-manager", "message-rpc", "cache-store", "dom-observer", "url-tools", "mime-utils", "frame-controller", "plugin-manager", "url-watcher"])
+  capabilities: Object.freeze(["tab-runtime", "runtime-manager", "disposable-resources", "permission-manager", "origin-policy", "settings-manager", "extension-registry", "command-registry", "performance-monitor", "view-adapter", "view-error-events", "platform-detection", "worker-manager", "message-rpc", "cache-store", "dom-observer", "url-tools", "mime-utils", "frame-controller", "plugin-manager", "url-watcher"])
 });
