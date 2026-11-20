@@ -33,5 +33,19 @@ $("#pe-import-apply").addEventListener("click",()=>{if(!importPreview)return;try
 $("#pe-export-data").addEventListener("click",()=>{const data=EngineAPI.exportPortableData({bookmarks:JSON.parse(localStorage.getItem("polaris-bookmarks")||"[]"),history:JSON.parse(localStorage.getItem("polaris-history")||"[]"),tabs:JSON.parse(localStorage.getItem("polaris-tabs")||"[]"),settings:JSON.parse(localStorage.getItem("polaris-settings")||"{}")});const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download="polaris-portable-data.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 window.PolarisEngine=Object.freeze({...EngineAPI,api:EngineAPI,name:"Polaris Engine",version:"0.5.0",resolveAddress:EngineAPI.resolveAddress,runDiagnostics,transport,capabilities:Object.freeze(["tab-runtime","runtime-manager","disposable-resources","permission-manager","origin-policy","settings-manager","extension-registry","command-registry","performance-monitor","view-adapter","view-error-events","platform-detection","worker-manager","message-rpc","cache-store","dom-observer","url-tools","mime-utils","frame-controller","plugin-manager","url-watcher","transport-provider-manager","portable-data-migration"])});
 updateTransportUI();
-transport.events.on("transport:provider-registered",updateTransportUI);
+transport.events.on("transport:provider-registered",async event=>{
+  updateTransportUI();
+  const selected=settings.get("transportProvider");
+  if(settings.get("transportEnabled") && selected===event.id){
+    try{await transport.configure({enabled:true,selected,autoInitialise:settings.get("transportAutoInitialise"),connectTimeout:settings.get("transportConnectTimeout")||15000});}
+    catch(error){$("#pe-transport-status").textContent="Saved transport could not start: "+error.message;}
+  }
+});
 transport.events.on("transport:state",updateTransportUI);
+(async()=>{
+  const selected=settings.get("transportProvider");
+  if(settings.get("transportEnabled") && selected && transport.list().some(provider=>provider.id===selected)){
+    try{await transport.configure({enabled:true,selected,autoInitialise:settings.get("transportAutoInitialise"),connectTimeout:settings.get("transportConnectTimeout")||15000});}
+    catch(error){$("#pe-transport-status").textContent="Saved transport could not start: "+error.message;}
+  }
+})();
