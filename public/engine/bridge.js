@@ -39,7 +39,7 @@ if (actions) actions.prepend(button);
 const panel = document.createElement("section");
 panel.id = "polaris-engine-panel";
 panel.hidden = true;
-panel.innerHTML = '<h2>Polaris Engine <small>0.4.0</small></h2><p>Expanded runtime foundation: per-tab lifecycle, settings, permissions, extensions, commands, telemetry and document adapters. This panel reports browser capabilities; it does not proxy or rewrite website traffic.</p><div id="polaris-engine-results">Diagnostics have not been run.</div><p><button id="polaris-engine-run" type="button">Run diagnostics</button> <button id="polaris-engine-close" type="button">Close</button></p>';
+panel.innerHTML = '<h2>Polaris Engine <small>0.4.0</small></h2><p>Expanded runtime foundation: per-tab lifecycle, settings, permissions, extensions, commands, telemetry and document adapters. The legacy proxy runtime is disabled in this build. This panel reports browser capabilities and the standalone Polaris Engine APIs.</p><div id="polaris-engine-results">Diagnostics have not been run.</div><p><button id="polaris-engine-run" type="button">Run diagnostics</button> <button id="polaris-engine-close" type="button">Close</button></p>';
 document.body.append(panel);
 button.addEventListener("click", async () => {
   panel.hidden = !panel.hidden;
