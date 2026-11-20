@@ -18,12 +18,12 @@ async function findPackageRoot(name, entry = name) {
 }
 
 const packages = [
-  ["@mercuryworkshop/scramjet", "scram", "@mercuryworkshop/scramjet/path"],
-  ["@mercuryworkshop/bare-mux", "baremux"],
-  ["@mercuryworkshop/epoxy-transport", "epoxy"]
+  ["@mercuryworkshop/scramjet", "scram", "@mercuryworkshop/scramjet/path", ["scramjet.all.js", "scramjet.wasm.wasm", "scramjet.sync.js"]],
+  ["@mercuryworkshop/bare-mux", "baremux", undefined, ["index.js", "worker.js"]],
+  ["@mercuryworkshop/epoxy-transport", "epoxy", undefined, ["index.mjs"]]
 ];
 
-for (const [name, output, entry] of packages) {
+for (const [name, output, entry, requiredFiles] of packages) {
   const packageRoot = await findPackageRoot(name, entry || name);
   const source = path.join(packageRoot, "dist");
   const destination = path.join(publicDir, output);
@@ -35,5 +35,12 @@ for (const [name, output, entry] of packages) {
   await fs.rm(destination, { recursive: true, force: true });
   await fs.mkdir(destination, { recursive: true });
   await fs.cp(source, destination, { recursive: true });
-  console.log("Prepared " + name + " -> public/" + output);
+  for (const file of requiredFiles) {
+    try {
+      await fs.access(path.join(destination, file));
+    } catch {
+      throw new Error("Proxy asset build for " + name + " is missing public/" + output + "/" + file);
+    }
+  }
+  console.log("Prepared " + name + " -> public/" + output + " (" + requiredFiles.join(", ") + ")");
 }
