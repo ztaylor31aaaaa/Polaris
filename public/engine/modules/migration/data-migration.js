@@ -6,6 +6,7 @@ function bookmarkRows(input) { if (!Array.isArray(input)) return []; return inpu
 function historyRows(input) { if (!Array.isArray(input)) return []; return input.map(item => { const url = safeUrl(typeof item === "string" ? item : item?.url || item?.href); return url ? { url, title: text(item?.title || item?.name || url), visitedAt: item?.visitedAt || item?.lastVisitTime || null } : null; }).filter(Boolean); }
 function tabRows(input) { if (!Array.isArray(input)) return []; return input.map(item => { const url = safeUrl(item?.url || item?.href || ""); return { title: text(item?.title || item?.name || url || "Imported tab", 120), url: url || "", pinned: Boolean(item?.pinned), group: text(item?.group || "", 40) }; }).filter(item => item.url || item.title); }
 function flattenBookmarksTree(nodes, output = []) { for (const node of nodes || []) { if (node.url) output.push({ url: node.url, title: node.name || node.title, folder: "Imported" }); if (Array.isArray(node.children)) flattenBookmarksTree(node.children, output); } return output; }
+function safePreferences(input) { if (!input || typeof input !== "object") return {}; return Object.fromEntries(Object.entries(input).filter(([key, value]) => PREFERENCE_KEYS.has(key) && ["string", "boolean", "number"].includes(typeof value))); }
 export function inspectMigration(input, { source = "auto" } = {}) {
   let data = input; if (typeof input === "string") { try { data = JSON.parse(input); } catch { throw new TypeError("Import must be valid JSON. Export bookmarks as JSON first."); } }
   if (!data || typeof data !== "object") throw new TypeError("Unsupported import file.");
@@ -13,16 +14,16 @@ export function inspectMigration(input, { source = "auto" } = {}) {
   const bookmarks = bookmarkRows(data.bookmarks || data.favorites || data.bookmarkList || root);
   const history = historyRows(data.history || data.visits || data.historyItems);
   const tabs = tabRows(data.tabs || data.session?.tabs || data.openTabs);
-  const rawSettings = data.settings && typeof data.settings === "object" ? data.settings : {}; const settings = {};
-  for (const [key, value] of Object.entries(rawSettings)) if (PREFERENCE_KEYS.has(key) && ["string", "boolean", "number"].includes(typeof value)) settings[key] = value;
+  const settings = safePreferences(data.settings);
   const detected = source !== "auto" ? source : /ultraviolet|uv-/i.test(String(data.source || data.app || data.format || "")) ? "ultraviolet" : /scramjet|sj-/i.test(String(data.source || data.app || data.format || "")) ? "scramjet" : "generic";
   return { schema: 1, source: detected, counts: { bookmarks: bookmarks.length, history: history.length, tabs: tabs.length, settings: Object.keys(settings).length }, data: { bookmarks, history, tabs, settings } };
 }
 export function applyMigration(preview, { bookmarks = [], history = [], tabs = [], settings = {}, mode = "merge" } = {}) {
   if (!preview || preview.schema !== 1 || !preview.data) throw new TypeError("Invalid migration preview."); if (!["merge", "replace"].includes(mode)) throw new TypeError("Migration mode must be merge or replace.");
-  const incoming = preview.data; const combine = (current, added, key) => { const base = mode === "replace" ? [] : current; const seen = new Set(base.map(item => item[key])); const result = [...base]; for (const item of added) if (!seen.has(item[key])) { seen.add(item[key]); result.push(item); } return result; };
+  const incoming = preview.data;
+  const combine = (current, added, key) => { const base = mode === "replace" ? [] : current; const seen = new Set(base.map(item => item[key])); const result = [...base]; for (const item of added) if (!seen.has(item[key])) { seen.add(item[key]); result.push(item); } return result; };
   return { bookmarks: combine(bookmarks, incoming.bookmarks, "url"), history: combine(history, incoming.history, "url").slice(0, 500), tabs: (mode === "replace" ? incoming.tabs : [...tabs, ...incoming.tabs]).slice(0, 40), settings: mode === "replace" ? { ...incoming.settings } : { ...settings, ...incoming.settings } };
 }
 export function exportPortableData({ bookmarks = [], history = [], tabs = [], settings = {} } = {}) {
-  return { app: "Polaris", format: "polaris-portable-data", schema: 1, exportedAt: new Date().toISOString(), bookmarks: bookmarkRows(bookmarks), history: historyRows(history), tabs: tabRows(tabs), settings: Object.fromEntries(Object.entries(settings).filter(([key, value]) => PREFERENCE_KEYS.has(key) && ["string", "boolean", "number"].includes(typeof value))) };
+  return { app: "Polaris", format: "polaris-portable-data", schema: 1, exportedAt: new Date().toISOString(), bookmarks: bookmarkRows(bookmarks), history: historyRows(history), tabs: tabRows(tabs), settings: safePreferences(settings) };
 }
