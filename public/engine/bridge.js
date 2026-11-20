@@ -1,4 +1,5 @@
 import { runDiagnostics } from "./diagnostics.js";
+import * as EngineAPI from "./modules/index.js";
 
 const styles = `
 #polaris-engine-button{border:1px solid var(--line,#333);background:var(--panel,#171a22);color:var(--text,#fff);border-radius:9px;padding:7px 10px;font:inherit;font-size:12px;cursor:pointer}
@@ -59,6 +60,8 @@ async function run() {
   }
 }
 window.PolarisEngine = Object.freeze({
+  ...EngineAPI,
+  api: EngineAPI,
   name: "Polaris Engine",
   version: "0.4.0",
   resolveAddress,
