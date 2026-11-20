@@ -36,7 +36,7 @@ export class TransportProviderManager {
     if (typeof this.activeProvider.connect !== "function") throw new Error("Selected provider does not support connect().");
     this.state = "connecting"; this.events.emit("transport:state", this.status());
     const controller = new AbortController(); let timer;
-    const timeout = new Promise((_, reject) => { timer = setTimeout(() => { controller.abort(); const error = new Error("Transport connection timed out."); error.code = "PROVIDER_TIMEOUT"; reject(error); }, this.connectTimeout); });
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => { const error = new Error("Transport connection timed out."); error.code = "PROVIDER_TIMEOUT"; reject(error); controller.abort(); }, this.connectTimeout); });
     try { const result = await Promise.race([Promise.resolve(this.activeProvider.connect({ ...options, signal: controller.signal })), timeout]); this.state = "connected"; this.events.emit("transport:connected", result); return result; }
     catch (error) { this.state = "error"; this.events.emit("transport:error", { stage: "connect", provider: this.selected, code: error?.code || "PROVIDER_CONNECT_FAILED", message: error?.message || "Provider connection failed." }); throw error; }
     finally { clearTimeout(timer); }
