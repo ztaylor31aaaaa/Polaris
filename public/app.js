@@ -28,6 +28,11 @@ function applyCustomTheme(){const style=document.documentElement.style,custom=br
 function updateCustomTheme(key,value){browserSettings.customTheme={...(browserSettings.customTheme||{}),[key]:value};localStorage.setItem("polaris-settings",JSON.stringify(browserSettings));applyCustomTheme()}
 function toolRandomInt(min,max){min=Math.ceil(min);max=Math.floor(max);if(!Number.isFinite(min)||!Number.isFinite(max)||max<min)throw Error("Maximum must be greater than or equal to minimum.");return Math.floor(Math.random()*(max-min+1))+min}
 const state={games:[],version:null,scramjet:null,bareMux:null,scramjetFrame:null,scramjetReady:false,browserUrl:"",activeWisp:"",tabs:[],closedTabs:[],activeTabId:null,settingsCategory:"browser",aiMessages:[]};
+// Keep any previously installed legacy proxy worker from remaining active.
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" })
+    .catch(error => console.warn("Polaris safe service worker unavailable:", error));
+}
 const root=document.querySelector("#page-content");
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function api(path,options={}){const headers={...(options.body instanceof FormData?{}:{"Content-Type":"application/json"}),...(options.headers||{})};const res=await fetch(path,{...options,headers});const data=await res.json().catch(()=>({}));if(!res.ok)throw Error(data.error||"API request failed ("+res.status+")");return data}
