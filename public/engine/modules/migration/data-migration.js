@@ -6,9 +6,23 @@ function bookmarkRows(input) { if (!Array.isArray(input)) return []; return inpu
 function historyRows(input) { if (!Array.isArray(input)) return []; return input.map(item => { const url = safeUrl(typeof item === "string" ? item : item?.url || item?.href); return url ? { url, title: text(item?.title || item?.name || url), visitedAt: item?.visitedAt || item?.lastVisitTime || null } : null; }).filter(Boolean); }
 function tabRows(input) { if (!Array.isArray(input)) return []; return input.map(item => { const url = safeUrl(item?.url || item?.href || ""); return { title: text(item?.title || item?.name || url || "Imported tab", 120), url: url || "", pinned: Boolean(item?.pinned), group: text(item?.group || "", 40) }; }).filter(item => item.url || item.title); }
 function flattenBookmarksTree(nodes, output = []) { for (const node of nodes || []) { if (node.url) output.push({ url: node.url, title: node.name || node.title, folder: "Imported" }); if (Array.isArray(node.children)) flattenBookmarksTree(node.children, output); } return output; }
+function decodeHtml(value) {
+  const entities = { "&amp;": "&", "&quot;": "\"", "&#39;": "'", "&apos;": "'", "&lt;": "<", "&gt;": ">" };
+  return String(value).replace(/&(amp|quot|#39|apos|lt|gt);/gi, entity => entities[entity.toLowerCase()] || entity);
+}
+function parseBookmarkHtml(input) {
+  const rows = [];
+  const pattern = /<a\b[^>]*?href\s*=\s*(["'])(.*?)\1[^>]*>([\s\S]*?)<\/a>/gi;
+  for (const match of String(input).matchAll(pattern)) {
+    const url = decodeHtml(match[2]);
+    const title = decodeHtml(match[3].replace(/<[^>]*>/g, "").trim());
+    if (safeUrl(url)) rows.push({ url, title: title || url, folder: "Imported" });
+  }
+  return rows;
+}
 function safePreferences(input) { if (!input || typeof input !== "object") return {}; return Object.fromEntries(Object.entries(input).filter(([key, value]) => PREFERENCE_KEYS.has(key) && ["string", "boolean", "number"].includes(typeof value))); }
 export function inspectMigration(input, { source = "auto" } = {}) {
-  let data = input; if (typeof input === "string") { try { data = JSON.parse(input); } catch { throw new TypeError("Import must be valid JSON. Export bookmarks as JSON first."); } }
+  let data = input; if (typeof input === "string") { if (/^\s*</.test(input)) data = { bookmarks: parseBookmarkHtml(input), format: "netscape-bookmarks-html" }; else { try { data = JSON.parse(input); } catch { throw new TypeError("Import must be JSON or Netscape bookmark HTML."); } } }
   if (!data || typeof data !== "object") throw new TypeError("Unsupported import file.");
   const root = data.roots ? flattenBookmarksTree(Object.values(data.roots)) : [];
   const bookmarks = bookmarkRows(data.bookmarks || data.favorites || data.bookmarkList || root);
