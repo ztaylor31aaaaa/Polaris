@@ -63,5 +63,8 @@ Overview, Discover, My library, Toolkit, AI workspace, Changelog, Feedback and S
 
 The initial game catalogue, statistics and Discord presence endpoints return starter values until their backing data sources are connected. The personal library is currently browser-local.
 
+## Polaris Engine
 
-Polaris Engine also includes `SessionPersistence` for saving and restoring named tab sessions. See `public/engine/modules/docs/SESSION-PERSISTENCE.md`.
+Polaris includes the modular Polaris Engine runtime and native browser API adapters. Its current website view uses a standard iframe, **not a custom browser renderer**. Some websites block iframe embedding through their own security headers, so those sites will not display inside the embedded view. A true custom renderer would require a separate browser-engine/native-host architecture; it cannot be achieved by styling or wrapping an iframe.
+
+The Engine also includes `SessionPersistence` for saving and restoring named tab sessions. See `public/engine/modules/docs/SESSION-PERSISTENCE.md`.
