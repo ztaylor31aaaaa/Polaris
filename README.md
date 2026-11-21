@@ -62,3 +62,6 @@ Keep the token server-side. Never put it in browser JavaScript or commit it to G
 Overview, Discover, My library, Toolkit, AI workspace, Changelog, Feedback and Settings.
 
 The initial game catalogue, statistics and Discord presence endpoints return starter values until their backing data sources are connected. The personal library is currently browser-local.
+
+
+Polaris Engine also includes `SessionPersistence` for saving and restoring named tab sessions. See `public/engine/modules/docs/SESSION-PERSISTENCE.md`.
