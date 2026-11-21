@@ -400,7 +400,7 @@ async function bindExperimentalRenderer(){
   if(!experimentalFrame&&!await start())return;
   setStatus("Fetching "+url+" …");
   try{await experimentalFrame.load(url);setStatus("Loaded "+experimentalFrame.url+" · "+experimentalRenderer.document.walk().length+" document nodes.");if(overlay)overlay.hidden=true}
-  catch(error){setStatus("Load failed: "+error.message+" · The site may block cross-origin fetches or require browser features not yet implemented.");}
+  catch(error){const code=error.code||"NETWORK_OR_CORS_ERROR";setStatus("Load failed ["+code+"]: "+error.message+" · External pages must allow browser CORS requests and may require unsupported browser features.");if(overlay){overlay.hidden=false;overlay.textContent="["+code+"] "+error.message}}
  });
  document.querySelector("#renderer-clear")?.addEventListener("click",()=>{destroy();experimentalRenderer=null;canvas.getContext("2d")?.clearRect(0,0,canvas.width,canvas.height);if(overlay){overlay.hidden=false;overlay.textContent="Renderer cleared."}setStatus("Renderer stopped.")});
  document.querySelector("#renderer-restart")?.addEventListener("click",start);
