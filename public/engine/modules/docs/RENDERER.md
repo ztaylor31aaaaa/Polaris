@@ -35,7 +35,7 @@ For network-loaded documents, use `await renderer.loadURL("https://example.com/"
 
 Polaris does **not** run downloaded page scripts in its own application JavaScript realm. The `ScriptRuntime` requires an explicitly supplied `engine` adapter implementing `createContext({ bridge, permissions, limits })`, returning a context with `evaluate(source, { filename, timeoutMs })` and `dispose()`.
 
-This is an integration point for a genuinely isolated engine such as a separately hosted QuickJS/WASM runtime. The bridge exposes a small allowlist of document operations; it is not a general host-object tunnel. Without an isolated engine adapter, scripts are not executed. JavaScript modules, dynamic imports, timers/async scheduling compatibility and full browser globals are not yet implemented. Do not connect an adapter that evaluates untrusted page source in the Polaris host realm.
+The `WorkerEngineAdapter` and `installPolarisScriptWorker` provide the host/worker RPC protocol for a separately bundled engine such as QuickJS/WASM. The worker-side host forwards approved DOM bridge calls to Polaris and enforces message/context limits. The actual interpreter implementation must still be supplied by the host; Polaris does not bundle a complete JavaScript interpreter. The bridge exposes an allowlist of document operations; it is not a general host-object tunnel. Without an isolated engine adapter, scripts are not executed. JavaScript modules, dynamic imports, timers/async scheduling compatibility and full browser globals are not yet implemented. Do not connect an adapter that evaluates untrusted page source in the Polaris host realm.
 
 ## Supported foundation
 
@@ -52,3 +52,23 @@ This is an integration point for a genuinely isolated engine such as a separatel
 This is not Chromium, WebKit or Gecko and does not claim full browser compatibility. The HTML parser is not a complete WHATWG tree builder. CSS grid, floats, full flex sizing/wrapping, stacking contexts, transforms, pseudo-elements, animations, SVG rendering, advanced typography, full form validation, full pointer/keyboard event semantics, accessibility platform integration, WebSocket integration with page JS, workers, service workers, IndexedDB DOM bindings, WebAssembly and module scripts remain incomplete. Layout and painting are early implementations and will need browser conformance tests before broad site compatibility.
 
 The renderer capability profile is exported through `getRendererCapabilities()` so callers can check what is actually implemented. Ported source should be migrated against these explicit APIs rather than assuming a native browser surface exists.
+
+## Expanded isolated DOM bridge
+
+The optional `PolarisDOMBridge` extends the initial script bridge with a larger, explicit DOM operation set for an external isolated JavaScript engine. It supports element and text-node creation, document queries, safe element-property access, tree insertion/removal, text and HTML mutation, inline style access, selector matching, ancestry/traversal, bounding boxes, focus, and event subscriptions.
+
+The bridge intentionally exposes a property allowlist. It does not expose `window`, `globalThis`, cookies, arbitrary host objects, direct network access, or a host-realm evaluation function. Event payloads are serialised into a bounded queue. Requests are size-limited and unknown methods are rejected.
+
+Example engine adapter integration:
+
+```js
+import { PolarisRenderer, ScriptRuntime } from "@polaris/engine";
+import { createQuickJsAdapter } from "./your-isolated-engine-adapter.js";
+
+const engine = createQuickJsAdapter();
+const scripts = new ScriptRuntime({ engine });
+const renderer = new PolarisRenderer({ canvas, scriptRuntime: scripts });
+await renderer.loadURL("https://example.org/");
+```
+
+`createQuickJsAdapter` above is an application-supplied adapter, not a built-in Polaris export. The adapter must implement the documented isolated context contract. The bridge alone does not make JavaScript execution available; the default capability remains disabled until a compatible engine is configured and tested.
