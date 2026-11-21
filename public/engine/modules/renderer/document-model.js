@@ -1,3 +1,4 @@
+import { createStyleDeclaration } from "./style-declaration.js";
 let nextNodeId = 1;
 
 export class PolarisNode {
@@ -53,6 +54,7 @@ export class PolarisNode {
     const list = this.parentNode.childNodes, i = list.indexOf(this);
     return list[i - 1] ?? null;
   }
+  get parentElement() { return this.parentNode instanceof ElementNode ? this.parentNode : null; }
   get textContent() {
     if (this.nodeType === 3 || this.nodeType === 8) return this.data;
     return this.childNodes.map(node => node.textContent).join("");
@@ -97,7 +99,7 @@ export class ElementNode extends PolarisNode {
     super(1, tag.toUpperCase());
     this.tagName = tag;
     this.attributes = new Map(Object.entries(attributes).map(([k,v]) => [k.toLowerCase(), String(v)]));
-    this.style = Object.create(null);
+    this.style = createStyleDeclaration(this);
     this.computedStyle = Object.create(null);
     this.layout = { x:0, y:0, width:0, height:0 };
     this.listeners = new Map();
@@ -132,6 +134,20 @@ export class ElementNode extends PolarisNode {
     return !event.defaultPrevented;
   }
   get children() { return this.childNodes.filter(n => n instanceof ElementNode); }
+  get firstElementChild() { return this.children[0] ?? null; }
+  get parentElement() { return this.parentNode instanceof ElementNode ? this.parentNode : null; }
+  get nextElementSibling() { let n=this.nextSibling;while(n&&!(n instanceof ElementNode))n=n.nextSibling;return n; }
+  get previousElementSibling() { let n=this.previousSibling;while(n&&!(n instanceof ElementNode))n=n.previousSibling;return n; }
+  get lastElementChild() { return this.children.at(-1) ?? null; }
+  get childElementCount() { return this.children.length; }
+  get nextElementSibling() { let n=this.nextSibling;while(n&&!(n instanceof ElementNode))n=n.nextSibling;return n; }
+  get previousElementSibling() { let n=this.previousSibling;while(n&&!(n instanceof ElementNode))n=n.previousSibling;return n; }
+  append(...nodes) { for(const node of nodes)this.appendChild(typeof node==="string"?new TextNode(node):node); }
+  prepend(...nodes) { let ref=this.firstChild;for(const node of nodes)this.insertBefore(typeof node==="string"?new TextNode(node):node,ref); }
+  getElementsByClassName(name) { const wanted=String(name).trim().split(/\\s+/).filter(Boolean);return [...this.walk()].filter(n=>n instanceof ElementNode&&wanted.every(c=>n.classList.contains(c))); }
+  matches(selector) { return matchesSelector(this,selector); }
+  closest(selector) { for(let node=this;node instanceof ElementNode;node=node.parentElement)if(node.matches(selector))return node;return null; }
+  toggleAttribute(name,force) { const has=this.hasAttribute(name),next=force??!has;if(next)this.setAttribute(name,"");else this.removeAttribute(name);return next; }
   get innerText() { return this.textContent; }
   get innerHTML() { return this.childNodes.map(serializeNode).join(""); }
   querySelector(selector) { return queryWithin(this, selector, false)[0] ?? null; }
@@ -151,40 +167,89 @@ function queryWithin(root, selector, includeRoot) {
   return out;
 }
 function escapeSelector(value) { return String(value).replace(/([ !"#$%&'()*+,./:;<=>?@[\\\]^\x60{|}~])/g, "\\$1"); }
-function matchesSimple(el, selector) {
-  const attrs = [...selector.matchAll(/\[([\w-]+)(?:\s*=\s*["']?([^\]"']+)["']?)?\]/g)];
-  selector = selector.replace(/\[[^\]]+\]/g, "");
-  if (selector && selector !== "*") {
-    const tag = selector.match(/^[a-zA-Z][\w-]*/)?.[0];
-    if (tag && el.tagName !== tag.toLowerCase()) return false;
-    for (const id of selector.matchAll(/#([\w-]+)/g)) if (el.id !== id[1]) return false;
-    for (const cls of selector.matchAll(/\.([\w-]+)/g)) if (!el.classList.contains(cls[1])) return false;
+function matchesCompound(el,selector){
+  if(!(el instanceof ElementNode))return false;
+  const attrMatches=[...selector.matchAll(/\[([\w-]+)\s*(?:(\^=|\$=|\*=|~=|\|=|=)\s*(?:"([^"]*)"|'([^']*)'|([^\]\s]+)))?\s*\]/g)];
+  const withoutAttrs=selector.replace(/\[[^\]]+\]/g,"");
+  const tag=withoutAttrs.match(/^[a-zA-Z][\w-]*/)?.[0];
+  if(tag&&el.tagName!==tag.toLowerCase())return false;
+  if(withoutAttrs.includes("*")&&!tag&&withoutAttrs[0]!=="*")return false;
+  for(const [,id] of withoutAttrs.matchAll(/#([\w-]+)/g))if(el.id!==id)return false;
+  for(const [,name] of withoutAttrs.matchAll(/\.([\w-]+)/g))if(!el.classList.contains(name))return false;
+  for(const [,name,operator,double,single,bare] of attrMatches){
+    if(!el.hasAttribute(name))return false;
+    if(!operator)continue;
+    const expected=double??single??bare??"",actual=el.getAttribute(name)??"";
+    if(operator==="="&&actual!==expected)return false;
+    if(operator==="^="&&!actual.startsWith(expected))return false;
+    if(operator==="$="&&!actual.endsWith(expected))return false;
+    if(operator==="*="&&!actual.includes(expected))return false;
+    if(operator==="~="&&!actual.split(/\s+/).includes(expected))return false;
+    if(operator==="|="&&actual!==expected&&!actual.startsWith(expected+"-"))return false;
   }
-  for (const [,name,value] of attrs) {
-    if (!el.hasAttribute(name)) return false;
-    if (value !== undefined && el.getAttribute(name) !== value.trim()) return false;
+  const pseudos=[...withoutAttrs.matchAll(/:([\w-]+)(?:\(([^()]*)\))?/g)];
+  for(const [,name,arg] of pseudos){
+    const siblings=el.parentElement?.children??[],index=siblings.indexOf(el)+1;
+    if(name==="root"&&el.parentElement)return false;
+    if(name==="first-child"&&index!==1)return false;
+    if(name==="last-child"&&index!==siblings.length)return false;
+    if(name==="only-child"&&siblings.length!==1)return false;
+    if(name==="nth-child"&&!matchesNth(index,arg??""))return false;
+    if(name==="nth-of-type"&&!matchesNth(siblings.filter(n=>n.tagName===el.tagName).indexOf(el)+1,arg??""))return false;
+    if(name==="empty"&&el.childNodes.some(n=>n.nodeType===1||(n.nodeType===3&&n.data.trim())))return false;
+    if(name==="checked"&&!el.checked&&!el.hasAttribute("checked"))return false;
+    if(name==="disabled"&&!el.hasAttribute("disabled"))return false;
+    if(name==="enabled"&&el.hasAttribute("disabled"))return false;
+    if(name==="not"&&matchesCompound(el,arg??""))return false;
+    if(name==="hover"&&!el._hover)return false;
+    if(name==="focus"&&!el._focus)return false;
+    if(name==="link"&&!(el.tagName==="a"&&el.hasAttribute("href")))return false;
+    if(!["root","first-child","last-child","only-child","nth-child","nth-of-type","empty","checked","disabled","enabled","not","hover","focus","link"].includes(name))return false;
   }
   return true;
 }
-export function matchesSelector(el, selector) {
-  const parts = selector.trim().replace(/\s*>\s*/g, " > ").split(/\s+/);
-  let current = el, i = parts.length - 1;
-  if (!matchesSimple(current, parts[i])) return false;
-  while (i > 0) {
-    const combinator = parts[i - 1];
-    if (combinator === ">") {
-      current = current.parentNode;
-      i -= 2;
-      if (!(current instanceof ElementNode) || !matchesSimple(current, parts[i])) return false;
-    } else {
-      i--;
-      let ancestor = current.parentNode;
-      while (ancestor instanceof ElementNode && !matchesSimple(ancestor, parts[i])) ancestor = ancestor.parentNode;
-      if (!(ancestor instanceof ElementNode)) return false;
-      current = ancestor;
+function matchesNth(index,expression){
+  const value=String(expression).replace(/\s+/g,"").toLowerCase();
+  if(value==="odd")return index%2===1;if(value==="even")return index%2===0;
+  if(/^\d+$/.test(value))return index===Number(value);
+  const match=value.match(/^([+-]?\d*)n([+-]\d+)?$/);if(!match)return false;
+  const a=match[1]===""||match[1]==="+"?1:match[1]==="-"?-1:Number(match[1]),b=Number(match[2]??0),n=(index-b)/a;
+  return Number.isInteger(n)&&n>=0;
+}
+function tokenizeSelector(selector){
+  const tokens=[];let buffer="",depth=0,quote="",pendingSpace=false;
+  for(const char of selector.trim()){
+    if(quote){buffer+=char;if(char===quote)quote="";continue;}
+    if(char==="'"||char==='"'){quote=char;buffer+=char;continue;}
+    if(char==="["||char==="(")depth++;
+    if(char==="]"||char===")")depth--;
+    if(depth===0&&(char===">"||char==="+"||char==="~")){
+      if(buffer.trim())tokens.push(buffer.trim());tokens.push(char);buffer="";pendingSpace=false;continue;
     }
+    if(depth===0&&/\s/.test(char)){if(buffer.trim()){tokens.push(buffer.trim());buffer="";pendingSpace=true;}continue;}
+    if(pendingSpace){tokens.push(" ");pendingSpace=false;}
+    buffer+=char;
   }
-  return true;
+  if(buffer.trim())tokens.push(buffer.trim());
+  return tokens;
+}
+export function matchesSelector(el,selector){
+  const tokens=tokenizeSelector(String(selector));
+  if(!tokens.length)return false;
+  const compounds=[],combinators=[];
+  for(const token of tokens){if([" ",">","+","~"].includes(token))combinators.push(token);else compounds.push(token);}
+  if(!compounds.length||combinators.length!==compounds.length-1)return false;
+  const matchAt=(node,index)=>{
+    if(!(node instanceof ElementNode)||!matchesCompound(node,compounds[index]))return false;
+    if(index===0)return true;
+    const combinator=combinators[index-1];
+    if(combinator===">")return matchAt(node.parentElement,index-1);
+    if(combinator==="+")return matchAt(node.previousElementSibling,index-1);
+    if(combinator==="~"){for(let sibling=node.previousElementSibling;sibling;sibling=sibling.previousElementSibling)if(matchAt(sibling,index-1))return true;return false;}
+    for(let ancestor=node.parentElement;ancestor;ancestor=ancestor.parentElement)if(matchAt(ancestor,index-1))return true;
+    return false;
+  };
+  return matchAt(el,compounds.length-1);
 }
 function serializeNode(node) {
   if (node instanceof TextNode) return node.data.replace(/&/g,"&amp;").replace(/</g,"&lt;");
