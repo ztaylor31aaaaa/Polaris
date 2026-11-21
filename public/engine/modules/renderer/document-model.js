@@ -55,6 +55,20 @@ export class PolarisNode {
     return list[i - 1] ?? null;
   }
   get parentElement() { return this.parentNode instanceof ElementNode ? this.parentNode : null; }
+  get isConnected() { for(let node=this;node;node=node.parentNode)if(node.nodeType===9)return true;return false; }
+  remove() { this.parentNode?.removeChild(this); }
+  before(...nodes) { if(!this.parentNode)return;for(const node of nodes)this.parentNode.insertBefore(typeof node==="string"?new TextNode(node):node,this); }
+  after(...nodes) { if(!this.parentNode)return;let ref=this.nextSibling;for(const node of nodes)this.parentNode.insertBefore(typeof node==="string"?new TextNode(node):node,ref); }
+  replaceWith(...nodes) { if(!this.parentNode)return;const parent=this.parentNode;for(const node of nodes)parent.insertBefore(typeof node==="string"?new TextNode(node):node,this);parent.removeChild(this); }
+  cloneNode(deep=false) {
+    let clone;
+    if(this instanceof ElementNode)clone=new ElementNode(this.tagName,Object.fromEntries(this.attributes));
+    else if(this instanceof TextNode)clone=new TextNode(this.data);
+    else if(this instanceof CommentNode)clone=new CommentNode(this.data);
+    else clone=new PolarisNode(this.nodeType,this.nodeName);
+    if(deep)for(const child of this.childNodes)clone.appendChild(child.cloneNode(true));
+    return clone;
+  }
   get textContent() {
     if (this.nodeType === 3 || this.nodeType === 8) return this.data;
     return this.childNodes.map(node => node.textContent).join("");
@@ -84,7 +98,7 @@ export class DocumentNode extends PolarisNode {
   getElementsByTagName(tag) { return this.querySelectorAll(tag); }
   querySelector(selector) { return this.querySelectorAll(selector)[0] ?? null; }
   querySelectorAll(selector) {
-    const groups = String(selector).split(",").map(s => s.trim()).filter(Boolean);
+    const groups = splitSelectorGroups(String(selector));
     const result = [];
     for (const node of this.walk()) {
       if (node instanceof ElementNode && groups.some(group => matchesSelector(node, group))) result.push(node);
@@ -144,7 +158,9 @@ export class ElementNode extends PolarisNode {
   get previousElementSibling() { let n=this.previousSibling;while(n&&!(n instanceof ElementNode))n=n.previousSibling;return n; }
   append(...nodes) { for(const node of nodes)this.appendChild(typeof node==="string"?new TextNode(node):node); }
   prepend(...nodes) { let ref=this.firstChild;for(const node of nodes)this.insertBefore(typeof node==="string"?new TextNode(node):node,ref); }
-  getElementsByClassName(name) { const wanted=String(name).trim().split(/\\s+/).filter(Boolean);return [...this.walk()].filter(n=>n instanceof ElementNode&&wanted.every(c=>n.classList.contains(c))); }
+  getElementsByClassName(name) { const wanted=String(name).trim().split(/\s+/).filter(Boolean);return [...this.walk()].filter(n=>n instanceof ElementNode&&wanted.every(c=>n.classList.contains(c))); }
+  getElementsByTagName(tag) { const wanted=String(tag).toLowerCase();return [...this.walk()].filter(n=>n instanceof ElementNode&&(wanted==="*"||n.tagName===wanted)); }
+  replaceChildren(...nodes) { super.replaceChildren(...nodes.map(node=>typeof node==="string"?new TextNode(node):node)); }
   matches(selector) { return matchesSelector(this,selector); }
   closest(selector) { for(let node=this;node instanceof ElementNode;node=node.parentElement)if(node.matches(selector))return node;return null; }
   toggleAttribute(name,force) { const has=this.hasAttribute(name),next=force??!has;if(next)this.setAttribute(name,"");else this.removeAttribute(name);return next; }
@@ -161,8 +177,13 @@ export class CommentNode extends PolarisNode {
   constructor(data) { super(8, "#comment"); this.data = String(data); }
 }
 
+function splitSelectorGroups(selector){
+  const groups=[];let start=0,depth=0,quote="";
+  for(let i=0;i<selector.length;i++){const c=selector[i];if(quote){if(c===quote&&selector[i-1]!=="\\")quote="";continue;}if(c==="'"||c==='"'){quote=c;continue;}if(c==="["||c==="(")depth++;else if(c==="]"||c===")")depth--;else if(c===","&&depth===0){groups.push(selector.slice(start,i).trim());start=i+1;}}
+  groups.push(selector.slice(start).trim());return groups.filter(Boolean);
+}
 function queryWithin(root, selector, includeRoot) {
-  const groups = String(selector).split(",").map(s => s.trim()).filter(Boolean), out = [];
+  const groups = splitSelectorGroups(String(selector)), out = [];
   for (const node of root.walk()) if ((includeRoot || node !== root) && node instanceof ElementNode && groups.some(g => matchesSelector(node,g))) out.push(node);
   return out;
 }
@@ -171,11 +192,12 @@ function matchesCompound(el,selector){
   if(!(el instanceof ElementNode))return false;
   const attrMatches=[...selector.matchAll(/\[([\w-]+)\s*(?:(\^=|\$=|\*=|~=|\|=|=)\s*(?:"([^"]*)"|'([^']*)'|([^\]\s]+)))?\s*\]/g)];
   const withoutAttrs=selector.replace(/\[[^\]]+\]/g,"");
-  const tag=withoutAttrs.match(/^[a-zA-Z][\w-]*/)?.[0];
+  const selectorBase=withoutAttrs.replace(/:not\([^)]*\)/g,"");
+  const tag=selectorBase.match(/^[a-zA-Z][\w-]*/)?.[0];
   if(tag&&el.tagName!==tag.toLowerCase())return false;
   if(withoutAttrs.includes("*")&&!tag&&withoutAttrs[0]!=="*")return false;
-  for(const [,id] of withoutAttrs.matchAll(/#([\w-]+)/g))if(el.id!==id)return false;
-  for(const [,name] of withoutAttrs.matchAll(/\.([\w-]+)/g))if(!el.classList.contains(name))return false;
+  for(const [,id] of selectorBase.matchAll(/#([\w-]+)/g))if(el.id!==id)return false;
+  for(const [,name] of selectorBase.matchAll(/\.([\w-]+)/g))if(!el.classList.contains(name))return false;
   for(const [,name,operator,double,single,bare] of attrMatches){
     if(!el.hasAttribute(name))return false;
     if(!operator)continue;
