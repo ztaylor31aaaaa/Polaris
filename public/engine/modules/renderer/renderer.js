@@ -28,7 +28,7 @@ export class PolarisRenderer {
     this.viewportState.onChange(state=>{this.viewport={width:state.width,height:state.height};this.styles.setViewport(this.viewport);this.render();});
   }
   _installDocument(html,options={}){
-    this.document=this.parser.parse(html,options);this.runtime=new PolarisDocumentRuntime({document:this.document,onNavigate:(url,navOptions)=>this.navigate(url,navOptions),onSubmit:(form)=>this._submitForm(form)});
+    this.document=this.parser.parse(html,options);this.runtime=new PolarisDocumentRuntime({document:this.document,parser:this.parser,onNavigate:(url,navOptions)=>this.navigate(url,navOptions),onSubmit:(form)=>this._submitForm(form)});
     this.runtime.decorateTree();if(this.scriptRuntime)this.scriptRuntime.runtime=this.runtime;this.runtime.viewport=this.viewport;this.styles.setViewport(this.viewport);this.styles.clearStylesheets();
     for(const style of this.document.querySelectorAll("style"))this.styles.addStylesheet(style.textContent);
     this.history._navigate(this.document.url,null,options.replaceHistory??true);
@@ -46,7 +46,7 @@ export class PolarisRenderer {
   }
   async _loadImages(options={}){
     this.images.clear();const images=this.document.querySelectorAll("img").filter(el=>el.getAttribute("src"));
-    await Promise.allSettled(images.map(async el=>{const result=await this.imageLoader.load(el.getAttribute("src"),{baseURL:this.document.url,signal:options.signal,credentials:options.credentials});this.images.set(el,result);}));
+    await Promise.allSettled(images.map(async el=>{const result=await this.imageLoader.load(el.getAttribute("src"),{baseURL:this.document.url,signal:options.signal,credentials:options.credentials});this.images.set(el,result);el._intrinsicWidth=result.width;el._intrinsicHeight=result.height;}));
     this.painter.images=this.images;
   }
   async startScripts(options={}){if(!this.scriptRuntime)throw new Error("No isolated ScriptRuntime has been configured");this.scriptRuntime.runtime=this.runtime;return this.scriptRuntime.start(this.document,options);}
@@ -63,7 +63,7 @@ export class PolarisRenderer {
   resize(width,height,dpr){this.viewportState.resize(width,height,dpr);if(this.canvas){this.canvas.width=Math.round(width*(dpr??1));this.canvas.height=Math.round(height*(dpr??1));}return this.render();}
   scrollTo(x,y){this.viewportState.scrollTo(x,y);return this.render();}
   scrollBy(x,y){this.viewportState.scrollBy(x,y);return this.render();}
-  hitTest(x,y){if(!this.document)return null;return [...this.document.walk()].filter(n=>n instanceof ElementNode).reverse().find(n=>{const b=n.layout;return b&&x>=b.x&&y>=b.y&&x<=b.x+b.width&&y<=b.y+b.height;})??null;}
+  hitTest(x,y){if(!this.document)return null;return [...this.document.walk()].filter(n=>n instanceof ElementNode).reverse().find(n=>{const b=n.layout;return b&&x>=b.x&&y+this.viewportState.scrollY>=b.y&&x<=b.x+b.width&&y+this.viewportState.scrollY<=b.y+b.height;})??null;}
   _handlePointer(event,type){
     if(!this.document||!this.canvas)return;
     const rect=this.canvas.getBoundingClientRect?.()??{left:0,top:0,width:this.viewport.width,height:this.viewport.height};
@@ -78,7 +78,7 @@ export class PolarisRenderer {
   getAccessibilityTree(){return this.document?buildAccessibilityTree(this.document):[];}
   render(){
     if(!this.document)return null;
-    try{this.styles.compute(this.document);const layout=this.layoutEngine.layout(this.document,this.viewport);this.painter.images=this.images;return this.painter.paint(this.document,layout,this.context);}
+    try{this.styles.compute(this.document);const layout=this.layoutEngine.layout(this.document,this.viewport);this.painter.images=this.images;return this.painter.paint(this.document,layout,this.context,this.viewportState);}
     catch(error){this.onError(error);throw error;}
   }
   destroy(){this.canvas?.removeEventListener?.("click",this._clickHandler);this.canvas?.removeEventListener?.("pointerdown",this._pointerHandler);this.imageLoader.clear();this.scriptRuntime?.dispose?.();this.runtime=null;this.document=null;this.context=null;this.canvas=null;}
