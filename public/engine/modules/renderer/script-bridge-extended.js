@@ -9,7 +9,13 @@ export class PolarisDOMBridge extends PolarisScriptBridge {
     const node=id=>this._resolveNode(id);
     const el=id=>{const n=node(id);if(!(n instanceof ElementNode))throw new TypeError("Element required");return n;};
     add("createTextNode",a=>this._rememberNode(new TextNode(a.text??"")));
+    add("appendChild",a=>{const p=node(a.parentId),c=node(a.childId);p.appendChild(c);return c.nodeId;});
+    add("removeChild",a=>{const p=node(a.parentId),c=node(a.childId);p.removeChild(c);return c.nodeId;});
+    add("getTextContent",a=>node(a.nodeId).textContent);
+    add("setTextContent",a=>{node(a.nodeId).textContent=String(a.value??"");return true;});
     add("getElementById",a=>this.runtime.document.getElementById(a.id)?.nodeId??null);
+    add("querySelector",a=>node(a.nodeId).querySelector(a.selector)?.nodeId??null);
+    add("querySelectorAll",a=>node(a.nodeId).querySelectorAll(a.selector).map(n=>n.nodeId));
     add("hasAttribute",a=>el(a.nodeId).hasAttribute(a.name));
     add("getProperty",a=>{if(!PROPERTIES.has(a.name))throw new Error("Property is not exposed");return el(a.nodeId)[a.name]??null;});
     add("setProperty",a=>{if(!PROPERTIES.has(a.name))throw new Error("Property is not exposed");el(a.nodeId)[a.name]=a.value;return true;});
