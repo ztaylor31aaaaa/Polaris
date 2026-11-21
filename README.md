@@ -65,6 +65,6 @@ The initial game catalogue, statistics and Discord presence endpoints return sta
 
 ## Polaris Engine
 
-Polaris includes the modular Polaris Engine runtime and native browser API adapters. Its current website view uses a standard iframe, **not a custom browser renderer**. Some websites block iframe embedding through their own security headers, so those sites will not display inside the embedded view. A true custom renderer would require a separate browser-engine/native-host architecture; it cannot be achieved by styling or wrapping an iframe.
+Polaris includes the modular Polaris Engine runtime and an experimental custom canvas renderer. The renderer has its own document model, HTML parser, CSS style engine, layout engine and paint engine; it is not an iframe wrapper. It currently supports only an early HTML/CSS subset and does not execute page JavaScript or provide full browser compatibility. The standard iframe adapter remains a separate optional fallback and is subject to websites' framing restrictions. See `public/engine/modules/docs/RENDERER.md` for details.
 
 The Engine also includes `SessionPersistence` for saving and restoring named tab sessions. See `public/engine/modules/docs/SESSION-PERSISTENCE.md`.
