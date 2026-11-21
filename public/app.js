@@ -403,7 +403,7 @@ async function bindExperimentalRenderer(){
   if(!experimentalFrame&&!await start())return;
   setStatus("Fetching "+url+" …");
   try{await experimentalFrame.load(url);setStatus("Loaded "+experimentalFrame.url+" · "+experimentalRenderer.document.walk().length+" document nodes.");if(overlay)overlay.hidden=true}
-  catch(error){const code=error.code||"NETWORK_OR_CORS_ERROR";setStatus("Load failed ["+code+"]: "+error.message+" · External pages must allow browser CORS requests and may require unsupported browser features.");if(overlay){overlay.hidden=false;overlay.textContent="["+code+"] "+error.message}}
+  catch(error){const code=error.code||"NETWORK_OR_CORS_ERROR",cause=error.causeName?(" Browser detail: "+error.causeName+(error.causeMessage?(" — "+error.causeMessage):"")):"",hint=code==="CORS_OR_NETWORK_ERROR"?" The browser does not reveal the exact cause. This renderer cannot read a page unless its server permits cross-origin access. Try a CORS-enabled test page or a page served from the same origin.":"";setStatus("Load failed ["+code+"]: "+error.message+cause+hint);if(overlay){overlay.hidden=false;overlay.textContent="["+code+"] "+error.message+cause+hint}}
  });
  document.querySelector("#renderer-clear")?.addEventListener("click",()=>{destroy();experimentalRenderer=null;canvas.getContext("2d")?.clearRect(0,0,canvas.width,canvas.height);if(overlay){overlay.hidden=false;overlay.textContent="Renderer cleared."}setStatus("Renderer stopped.")});
  document.querySelector("#renderer-restart")?.addEventListener("click",start);
