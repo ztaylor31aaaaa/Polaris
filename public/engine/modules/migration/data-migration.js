@@ -33,10 +33,29 @@ export function inspectMigration(input, { source = "auto" } = {}) {
   return { schema: 1, source: detected, counts: { bookmarks: bookmarks.length, history: history.length, tabs: tabs.length, settings: Object.keys(settings).length }, data: { bookmarks, history, tabs, settings } };
 }
 export function applyMigration(preview, { bookmarks = [], history = [], tabs = [], settings = {}, mode = "merge" } = {}) {
-  if (!preview || preview.schema !== 1 || !preview.data) throw new TypeError("Invalid migration preview."); if (!["merge", "replace"].includes(mode)) throw new TypeError("Migration mode must be merge or replace.");
+  if (!preview || preview.schema !== 1 || !preview.data) throw new TypeError("Invalid migration preview.");
+  if (!["merge", "replace"].includes(mode)) throw new TypeError("Migration mode must be merge or replace.");
   const incoming = preview.data;
-  const combine = (current, added, key) => { const base = mode === "replace" ? [] : current; const seen = new Set(base.map(item => item[key])); const result = [...base]; for (const item of added) if (!seen.has(item[key])) { seen.add(item[key]); result.push(item); } return result; };
-  return { bookmarks: combine(bookmarks, incoming.bookmarks, "url"), history: combine(history, incoming.history, "url").slice(0, 500), tabs: (mode === "replace" ? incoming.tabs : [...tabs, ...incoming.tabs]).slice(0, 40), settings: mode === "replace" ? { ...incoming.settings } : { ...settings, ...incoming.settings } };
+  const combine = (current, added, key, replaceWhenPresent = false) => {
+    const base = mode === "replace" && (!replaceWhenPresent || added.length) ? [] : current;
+    const seen = new Set(base.map(item => item[key]));
+    const result = [...base];
+    for (const item of added) if (!seen.has(item[key])) { seen.add(item[key]); result.push(item); }
+    return result;
+  };
+  const historyBase = mode === "replace" && incoming.history.length ? [] : history;
+  const historySeen = new Set(historyBase.map(item => item.url + "|" + (item.visitedAt || "")));
+  const mergedHistory = [...historyBase];
+  for (const item of incoming.history) {
+    const key = item.url + "|" + (item.visitedAt || "");
+    if (!historySeen.has(key)) { historySeen.add(key); mergedHistory.push(item); }
+  }
+  return {
+    bookmarks: combine(bookmarks, incoming.bookmarks, "url", true),
+    history: mergedHistory.slice(0, 500),
+    tabs: (mode === "replace" && incoming.tabs.length ? incoming.tabs : [...tabs, ...incoming.tabs]).slice(0, 40),
+    settings: mode === "replace" && Object.keys(incoming.settings).length ? { ...incoming.settings } : { ...settings, ...incoming.settings }
+  };
 }
 export function exportPortableData({ bookmarks = [], history = [], tabs = [], settings = {} } = {}) {
   return { app: "Polaris", format: "polaris-portable-data", schema: 1, exportedAt: new Date().toISOString(), bookmarks: bookmarkRows(bookmarks), history: historyRows(history), tabs: tabRows(tabs), settings: safePreferences(settings) };
