@@ -48,3 +48,16 @@ export { LayoutEngine } from "./renderer/layout-engine.js";
 export { PaintEngine } from "./renderer/paint-engine.js";
 export { PolarisRenderer } from "./renderer/renderer.js";
 export { ResourceLoader, ResourceLoadError } from "./renderer/resource-loader.js";
+
+export { PolarisEvent, PolarisCustomEvent, EventTargetMixin, dispatchPolarisEvent } from "./renderer/dom-events.js";
+export { PolarisDocumentRuntime, PolarisMutationObserver } from "./renderer/dom-runtime.js";
+export { PolarisHistory } from "./renderer/history-runtime.js";
+export { collectFormData, encodeFormData } from "./renderer/forms.js";
+export { ImageResourceLoader } from "./renderer/image-loader.js";
+export { buildAccessibilityTree } from "./renderer/accessibility.js";
+export { RendererViewport } from "./renderer/viewport.js";
+export { PolarisScriptBridge } from "./renderer/script-bridge.js";
+export { createStyleDeclaration } from "./renderer/style-declaration.js";
+export { RendererNetworkPolicy } from "./renderer/network-policy.js";
+export { RENDERER_CAPABILITIES, getRendererCapabilities, supportsRendererFeature } from "./renderer/runtime-capabilities.js";
+export { ScriptRuntime } from "./renderer/script-runtime.js";
