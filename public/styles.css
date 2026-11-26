@@ -671,3 +671,9 @@ html[data-corners="soft"] .panel,html[data-corners="soft"] .button,html[data-cor
 .renderer-port-row small{grid-column:1/-1;opacity:.72;line-height:1.45}
 .renderer-port-status{font-size:10px;text-transform:uppercase;letter-spacing:.04em;opacity:.8}
 @media(max-width:600px){.renderer-port-features{grid-template-columns:1fr}}
+
+
+.game-frame-wrap{position:relative;isolation:isolate;background:#070a10}
+.game-frame-loading{position:absolute;inset:0;z-index:1;display:grid;place-items:center;background:#090d14;color:#9fb0c5;font-size:13px;pointer-events:none}
+.game-frame-loading[hidden]{display:none}
+.game-frame-loading.error{color:#ff9b9b}
