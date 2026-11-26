@@ -142,7 +142,8 @@ async function loadGameCatalogue(){
     description:String(game.description||game.category||"HTML game"),
     category:String(game.category||game.type||"Game"),
     image:game.image||game.image_url||game.imageUrl||game.icon||game.icon_url||game.iconUrl||game.app_icon||game.appIcon||game.icon_path||game.iconPath||game.cover||game.coverImage||game.thumbnail||game.thumbnail_url||game.thumbnailUrl||game.thumb||game.logo||game.images||"",
-    href:resolveGameUrl(game.src||game.url)
+    href:resolveGameUrl(game.src||game.url),
+    source:"Snubby"
   })).filter(game=>game.href);
 }
 const GAME_USAGE_KEY="polaris-game-usage";
