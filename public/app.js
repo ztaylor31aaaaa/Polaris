@@ -79,9 +79,12 @@ function renderGameViewer(rawUrl,name){
  root.classList.remove("page-enter");
  const player=document.createElement("section");
  player.className="game-player";
- player.innerHTML='<div class="game-player-toolbar"><button class="game-player-back" id="game-back" type="button">← <span>Games</span></button><div class="game-player-title"><span class="game-player-live"></span><strong></strong><small>Running inside Polaris</small></div><div class="game-player-actions"><button class="game-player-action" id="game-reload" type="button" title="Reload game">↻</button><button class="game-player-action" id="game-fullscreen" type="button" title="Fullscreen">⛶</button></div></div><div class="game-frame-wrap"><iframe id="game-frame" class="game-frame" title="Game" allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write; pointer-lock" allowfullscreen loading="eager"></iframe></div><p class="game-player-note">This game is embedded in Polaris. Some external sites may block iframe embedding.</p>';
+ const isCommunity=gameUrl.pathname.startsWith("/community-games/games/");
+ player.innerHTML='<div class="game-player-toolbar"><button class="game-player-back" id="game-back" type="button">← <span>Games</span></button><div class="game-player-title"><span class="game-player-live"></span><strong></strong><small>'+(isCommunity?"Polaris Games · Community catalogue":"Running inside Polaris")+'</small></div><div class="game-player-actions"><button class="game-player-action" id="game-reload" type="button" title="Reload game">↻</button><button class="game-player-action" id="game-fullscreen" type="button" title="Fullscreen">⛶</button></div></div><div class="game-frame-wrap"><div class="game-frame-loading" id="game-frame-loading">Loading game assets…</div><iframe id="game-frame" class="game-frame" title="Game" allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write; pointer-lock" allowfullscreen loading="eager"></iframe></div><p class="game-player-note">'+(isCommunity?"Community game assets are served through the Polaris Games asset route.":"This game is embedded in Polaris. Some external sites may block iframe embedding.")+'</p>';
  player.querySelector(".game-player-title strong").textContent=name;
- const frame=player.querySelector("#game-frame");
+ const frame=player.querySelector("#game-frame"),loading=player.querySelector("#game-frame-loading");
+ frame.addEventListener("load",()=>{if(loading)loading.hidden=true});
+ frame.addEventListener("error",()=>{if(loading){loading.hidden=false;loading.textContent="The game entry page could not be loaded. Check its asset path and deployment logs.";loading.classList.add("error")}});
  frame.src=gameUrl.href;
  root.replaceChildren(player);
  root.classList.add("page-enter");
@@ -111,7 +114,7 @@ async function loadCommunityGameCatalogue(){
  if(!response.ok)throw new Error("Polaris Games catalogue returned "+response.status);
  const data=await response.json();
  if(!Array.isArray(data))throw new Error("Polaris Games catalogue format was invalid");
- return data.filter(game=>game&&typeof game.id==="string"&&typeof game.name==="string"&&typeof game.src==="string"&&game.src.startsWith("games/")&&/\.html?$/i.test(game.src)&&!game.src.split("/").includes("..")&&!game.src.includes("\\")).map(game=>({id:"community-"+game.id,name:game.name,description:String(game.description||"Community game"),category:String(game.category||"Community"),image:game.image?communityAssetPath(game.image):"",href:communityAssetPath(game.src),icon:game.name.slice(0,2).toUpperCase(),source:"Polaris Games"}));
+ return data.filter(game=>game&&typeof game.id==="string"&&/^[a-z0-9][a-z0-9_-]{0,63}$/i.test(game.id)&&typeof game.name==="string"&&game.name.trim()&&typeof game.src==="string"&&/^games\/[a-z0-9._/-]+\.html?$/i.test(game.src)&&!game.src.split("/").some(part=>!part||part==="."||part==="..")&&!game.src.includes("\\")).map(game=>({id:"community-"+game.id,name:game.name.trim().slice(0,100),description:String(game.description||"Community game").slice(0,300),category:String(game.category||"Community").slice(0,40),image:game.image?communityAssetPath(game.image):"",href:communityAssetPath(game.src),icon:game.name.slice(0,2).toUpperCase(),source:"Polaris Games"}));
 }
 
 function resolveGameUrl(src){
