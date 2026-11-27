@@ -67,10 +67,14 @@ export class PolarisState {
   if(url.pathname==="/rate"&&request.method==="POST"){
    const limit=Math.max(1,Math.min(1000,Number(url.searchParams.get("limit"))||60));
    const windowMs=Math.max(1000,Math.min(3600000,Number(url.searchParams.get("window"))||60000));
-   const windowStart=Math.floor(now/windowMs)*windowMs,record=await this.storage.get("rate"),count=record?.windowStart===windowStart?record.count:0;
-   if(count>=limit)return new Response(JSON.stringify({allowed:false,remaining:0}),{status:200,headers:HEADERS});
-   await this.storage.put("rate",{windowStart,count:count+1});
-   return new Response(JSON.stringify({allowed:true,remaining:limit-count-1}),{status:200,headers:HEADERS});
+   const windowStart=Math.floor(now/windowMs)*windowMs;
+   const result=await this.storage.transaction(async transaction=>{
+    const record=await transaction.get("rate"),count=record?.windowStart===windowStart?record.count:0;
+    if(count>=limit)return {allowed:false,remaining:0};
+    await transaction.put("rate",{windowStart,count:count+1});
+    return {allowed:true,remaining:limit-count-1};
+   });
+   return new Response(JSON.stringify(result),{status:200,headers:HEADERS});
   }
   if(url.pathname==="/presence/heartbeat"&&request.method==="POST"){
    let body;try{body=await request.json()}catch{return new Response(JSON.stringify({error:"Invalid request."}),{status:400,headers:HEADERS})}
