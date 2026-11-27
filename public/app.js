@@ -266,7 +266,7 @@ function openExternalBrowserWindow(value){
  try{target=new URL(value,location.href);if(!["http:","https:"].includes(target.protocol))throw Error("Only HTTP and HTTPS addresses are supported.");}
  catch(error){toast(error.message||"Invalid website address.");return false}
  // This function must run directly inside a user gesture so the browser does not block the new window.
- const opened=window.open(target.href,"_blank");
+ const opened=window.open(target.href,"_blank","popup=yes,width=1280,height=850,resizable=yes,scrollbars=yes");
  if(!opened){toast("Your browser blocked the new window. Allow pop-ups for Polaris, then try again.");return false}
  try{opened.opener=null}catch{}
  return true;
