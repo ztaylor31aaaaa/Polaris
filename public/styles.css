@@ -686,3 +686,11 @@ html[data-corners="soft"] .panel,html[data-corners="soft"] .button,html[data-cor
 .external-browser-card p{max-width:540px;margin:12px auto;color:var(--muted);line-height:1.6}
 .external-browser-address{overflow-wrap:anywhere;font-size:13px}
 .external-browser-card .button{margin-top:10px}
+
+
+/* Browser fallback: explain frame restrictions and provide a clean top-level handoff. */
+.browser-fallback-card{max-width:760px}
+.browser-fallback-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:20px auto 8px}
+.browser-fallback-actions .button{min-width:170px}
+.browser-fallback-note{font-size:12px}
+#web-back:disabled,#web-forward:disabled{opacity:.35;cursor:not-allowed}
