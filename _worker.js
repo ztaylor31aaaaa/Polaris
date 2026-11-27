@@ -35,7 +35,7 @@ if(p==="/api/ai/models"||p==="/api/ai/chat"){
  if(request.method!=="POST")return reply({error:"Method not allowed."},405);
  const length=Number(request.headers.get("Content-Length")||0);if(length>1048576)return reply({error:"AI request exceeds the 1 MB limit."},413);
  const key=request.headers.get("Authorization")?.replace(/^Bearer\s+/i,"");
- if(!key)return reply({error:"An API key is required."},401);
+ if(!key||key.length>512||/[\r\n]/.test(key))return reply({error:"A valid API key is required."},401);
  let body;try{body=await request.json()}catch{return reply({error:"Invalid JSON request."},400)}
  let base;try{base=new URL(String(body.baseUrl||""))}catch{return reply({error:"Invalid provider endpoint."},400)}
  const allowed=["api.openai.com","generativelanguage.googleapis.com","integrate.api.nvidia.com"];
@@ -43,7 +43,7 @@ if(p==="/api/ai/models"||p==="/api/ai/chat"){
  const endpoint=new URL((p.endsWith("/models")?"models":"chat/completions"),base.href.replace(/\/$/,"")+"/");
  const headers={Authorization:"Bearer "+key};
  const init={method:p.endsWith("/models")?"GET":"POST",headers};
- if(init.method==="POST"){headers["Content-Type"]="application/json";const {baseUrl,...payload}=body;init.body=JSON.stringify(payload)}
+ if(init.method==="POST"){headers["Content-Type"]="application/json";const {baseUrl,...payload}=body;const payloadText=JSON.stringify(payload);if(payloadText.length>1048576)return reply({error:"AI request exceeds the 1 MB limit."},413);init.body=payloadText}
  try{const upstream=await fetch(endpoint.href,init);return new Response(upstream.body,{status:upstream.status,headers:{"Content-Type":upstream.headers.get("Content-Type")||"application/json","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer"}})}catch{return reply({error:"Could not connect to the AI provider. Check your connection and provider endpoint."},502)}
 }
 if(request.method==="GET"&&p==="/api")return reply({name:"Polaris API",version:VERSION,endpoints:["/api/health","/api/status","/api/version","/api/games","/api/shared-games","/api/stats","/api/presence/count","/api/presence/heartbeat","/api/presence/leave","/api/discord-presence","/api/bot/status","/api/bot/games","/api/bot/stats"]});
@@ -87,7 +87,7 @@ export class PolarisState {
   return new Response(JSON.stringify({error:"Not found."}),{status:404,headers:HEADERS});
  }
  async presenceResponse(){
-  const now=Date.now(),entries=await this.storage.list({prefix:"presence:",limit:5000});let online=0;const expired=[];
+  const now=Date.now(),entries=await this.storage.list({prefix:"presence:",limit:1000});let online=0;const expired=[];
   for(const [key,value] of entries){if(!value||now-Number(value.lastSeen||0)>60000)expired.push(key);else online++}
   if(expired.length)await this.storage.delete(expired);
   return new Response(JSON.stringify({online,unit:"sessions",ttlSeconds:60,updatedAt:new Date(now).toISOString()}),{status:200,headers:HEADERS});
