@@ -57,6 +57,9 @@ const runtime = Object.freeze({
     if (!active || typeof active.navigate !== "function") {
       throw new Error("No compatible browser engine is registered.");
     }
+    if (options.engine && active.id !== options.engine) {
+      throw new Error("The requested " + options.engine + " frame adapter is not registered.");
+    }
     const parsed = new URL(url, location.href);
     if (!["http:", "https:"].includes(parsed.protocol)) {
       throw new Error("Only HTTP and HTTPS destinations are supported.");
