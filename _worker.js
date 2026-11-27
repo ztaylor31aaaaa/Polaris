@@ -67,9 +67,9 @@ export class PolarisState {
   if(url.pathname==="/rate"&&request.method==="POST"){
    const limit=Math.max(1,Math.min(1000,Number(url.searchParams.get("limit"))||60));
    const windowMs=Math.max(1000,Math.min(3600000,Number(url.searchParams.get("window"))||60000));
-   const key="rate:"+Math.floor(now/windowMs),record=await this.storage.get(key),count=record?.count||0;
+   const windowStart=Math.floor(now/windowMs)*windowMs,record=await this.storage.get("rate"),count=record?.windowStart===windowStart?record.count:0;
    if(count>=limit)return new Response(JSON.stringify({allowed:false,remaining:0}),{status:200,headers:HEADERS});
-   await this.storage.put(key,{count:count+1,expiresAt:(Math.floor(now/windowMs)+1)*windowMs});
+   await this.storage.put("rate",{windowStart,count:count+1});
    return new Response(JSON.stringify({allowed:true,remaining:limit-count-1}),{status:200,headers:HEADERS});
   }
   if(url.pathname==="/presence/heartbeat"&&request.method==="POST"){
@@ -93,4 +93,4 @@ export class PolarisState {
   return new Response(JSON.stringify({online,unit:"sessions",ttlSeconds:60,updatedAt:new Date(now).toISOString()}),{status:200,headers:HEADERS});
  }
 }
-export default{async fetch(request,env){const path=new URL(request.url).pathname;if(path==="/api"||path.startsWith("/api/")||path.startsWith("/community-games/"))return route(request,env);const response=await env.ASSETS.fetch(request);const headers=new Headers(response.headers);headers.set("Cross-Origin-Opener-Policy","same-origin");headers.set("Cross-Origin-Embedder-Policy","require-corp");headers.set("X-Content-Type-Options","nosniff");headers.set("Referrer-Policy","strict-origin-when-cross-origin");return new Response(response.body,{status:response.status,statusText:response.statusText,headers})}};
+export default{async fetch(request,env){const path=new URL(request.url).pathname;if(path==="/api"||path.startsWith("/api/")||path.startsWith("/community-games/"))return route(request,env);const response=await env.ASSETS.fetch(request);const headers=new Headers(response.headers);headers.set("Cross-Origin-Opener-Policy","same-origin");headers.delete("Cross-Origin-Embedder-Policy");headers.set("X-Content-Type-Options","nosniff");headers.set("Referrer-Policy","strict-origin-when-cross-origin");return new Response(response.body,{status:response.status,statusText:response.statusText,headers})}};
