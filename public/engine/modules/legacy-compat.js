@@ -32,35 +32,58 @@
     iframe.setAttribute("allowfullscreen", "");
     let destroyed = false;
     let currentUrl = "";
+    let historyEntries = [];
+    let historyIndex = -1;
+
+    function load(next, record) {
+      if (destroyed) return Promise.reject(new Error("This browser frame has been closed."));
+      currentUrl = next;
+      if (record) {
+        historyEntries = historyEntries.slice(0, historyIndex + 1);
+        historyEntries.push(next);
+        if (historyEntries.length > 100) historyEntries.shift();
+        historyIndex = historyEntries.length - 1;
+      }
+      return new Promise((resolve, reject) => {
+        let timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("The website did not finish loading in time. It may be offline or may block embedded browsing."));
+        }, 25000);
+        const onLoad = () => { cleanup(); resolve({ url: next, mode: "native-iframe" }); };
+        const onError = () => { cleanup(); reject(new Error("The browser could not load this website.")); };
+        const cleanup = () => {
+          clearTimeout(timer);
+          iframe.removeEventListener("load", onLoad);
+          iframe.removeEventListener("error", onError);
+        };
+        iframe.addEventListener("load", onLoad, { once: true });
+        iframe.addEventListener("error", onError, { once: true });
+        iframe.src = next;
+      });
+    }
 
     return {
       frame: iframe,
       get url() { return currentUrl; },
       go(value) {
-        if (destroyed) return Promise.reject(new Error("This browser frame has been closed."));
         let next;
         try { next = validateUrl(value); }
         catch (error) { return Promise.reject(error); }
-        currentUrl = next;
-        return new Promise((resolve, reject) => {
-          let timer = setTimeout(() => {
-            cleanup();
-            reject(new Error("The website did not finish loading in time. It may be offline or may block embedded browsing."));
-          }, 25000);
-          const onLoad = () => { cleanup(); resolve({ url: next, mode: "native-iframe" }); };
-          const onError = () => { cleanup(); reject(new Error("The browser could not load this website.")); };
-          const cleanup = () => {
-            clearTimeout(timer);
-            iframe.removeEventListener("load", onLoad);
-            iframe.removeEventListener("error", onError);
-          };
-          iframe.addEventListener("load", onLoad, { once: true });
-          iframe.addEventListener("error", onError, { once: true });
-          iframe.src = next;
-        });
+        return load(next, true);
+      },
+      back() {
+        if (destroyed || historyIndex <= 0) return Promise.resolve(false);
+        historyIndex--;
+        return load(historyEntries[historyIndex], false);
+      },
+      forward() {
+        if (destroyed || historyIndex >= historyEntries.length - 1) return Promise.resolve(false);
+        historyIndex++;
+        return load(historyEntries[historyIndex], false);
       },
       reload() {
-        if (!destroyed && currentUrl) iframe.src = currentUrl;
+        if (!destroyed && currentUrl) return load(currentUrl, false);
+        return Promise.resolve(false);
       },
       destroy() {
         destroyed = true;
