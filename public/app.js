@@ -271,19 +271,42 @@ async function renderBrowser(rawUrl){
  state.browserUrl=target.href;saveTabUrl(target.href);
  root.classList.remove("page-enter");
  const tab=activeTab();
- const isPolarisOrigin=target.origin===location.origin;
- if(isPolarisOrigin){
-  root.innerHTML='<section class="polaris-browser is-open"><div class="web-browser-frame-wrap"><div class="web-frame-loading" id="web-frame-loading"><span class="orbit-spinner"></span><span>Loading Polaris page…</span></div><iframe class="web-browser-frame" id="polaris-same-origin-frame" title="Polaris page" src="'+esc(target.href)+'" referrerpolicy="same-origin"></iframe></div></section>';
-  const frame=root.querySelector("#polaris-same-origin-frame");
-  const loading=root.querySelector("#web-frame-loading");
-  frame.addEventListener("load",()=>loading?.classList.add("is-hidden"),{once:true});
-  if(tab)tab.frameObj={frame,reload:()=>{loading?.classList.remove("is-hidden");frame.contentWindow.location.reload()}};
- }else{
-  root.innerHTML='<section class="polaris-browser is-open"><div class="web-browser-frame-wrap"><div class="external-browser-card browser-fallback-card"><div class="external-browser-icon">↗</div><h2>Open this website in your browser</h2><p class="external-browser-address"></p><p>This website does not permit Polaris to display it here. Polaris respects the website\'s embedding restrictions. You can open the address in a normal browser tab.</p><div class="browser-fallback-actions"><button class="button" id="browser-open-external" type="button">Open website in new tab ↗</button><button class="button button-secondary" id="browser-copy-address" type="button">Copy address</button></div><p class="muted browser-fallback-note">Your Polaris tab, bookmarks and navigation history stay available here.</p></div></div></section>';
-  const address=root.querySelector(".external-browser-address");if(address)address.textContent=target.href;
-  root.querySelector("#browser-open-external")?.addEventListener("click",()=>openExternalBrowserWindow(target.href));
-  root.querySelector("#browser-copy-address")?.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(target.href);toast("Website address copied.")}catch{toast("Clipboard access was blocked by the browser.")}});
-  if(tab)tab.frameObj=null;
+ const tabId=tab?.id||"";
+ root.innerHTML='<section class="polaris-browser is-open"><div class="web-browser-frame-wrap"><div class="web-frame-loading" id="web-frame-loading"><span class="orbit-spinner"></span><span>Starting Scramjet frame…</span></div><div class="web-browser-frame scramjet-frame-host" id="scramjet-frame-host" title="Scramjet website frame"></div></div></section>';
+ const host=root.querySelector("#scramjet-frame-host");
+ const loading=root.querySelector("#web-frame-loading");
+ const showError=message=>{
+  if(!host?.isConnected)return;
+  loading?.classList.add("is-hidden");
+  host.innerHTML='<div class="external-browser-card browser-fallback-card"><div class="external-browser-icon">!</div><h2>Scramjet is not ready</h2><p class="external-browser-address"></p><p class="scramjet-error-detail"></p><button class="button button-secondary" id="scramjet-retry" type="button">Retry</button></div>';
+  const address=host.querySelector(".external-browser-address");if(address)address.textContent=target.href;
+  const detail=host.querySelector(".scramjet-error-detail");if(detail)detail.textContent=message||"The Scramjet frame engine is not configured.";
+  host.querySelector("#scramjet-retry")?.addEventListener("click",()=>renderBrowser(target.href));
+ };
+ const engine=window.PolarisBrowserEngine;
+ if(!engine){showError("The Polaris browser engine runtime did not load.");}
+ else{
+  const existing=tab?.frameObj;
+  const run=async()=>{
+   try{
+    if(existing?.navigate&&existing.host===host){
+     await existing.navigate(target.href);
+     loading?.classList.add("is-hidden");
+     return existing;
+    }
+    const result=await engine.navigate(target.href,{container:host,tabId,engine:"scramjet",onReady:()=>loading?.classList.add("is-hidden"),onError:showError});
+    if(!host.isConnected){result?.destroy?.();return null}
+    const handle=result&&typeof result==="object"?result:{};
+    tab.frameObj={...handle,host,url:target.href,reload:()=>handle.reload?handle.reload():renderBrowser(target.href),destroy:()=>handle.destroy?.()};
+    loading?.classList.add("is-hidden");
+    return tab.frameObj;
+   }catch(error){showError(error?.message||String(error));return null}
+  };
+  if(tab){
+   try{tab.frameObj?.destroy?.()}catch{}
+   tab.frameObj=null;
+  }
+  run();
  }
  if(tab){tab.lastOpenedAt=Date.now();tab.loaded=true;persistTabs()}
  root.classList.add("page-enter");updateBrowserNavButtons();
