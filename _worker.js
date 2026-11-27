@@ -27,7 +27,7 @@ if(request.method==="GET"&&p.startsWith("/community-games/")){
  mp3:"audio/mpeg",ogg:"audio/ogg",oga:"audio/ogg",wav:"audio/wav",m4a:"audio/mp4",aac:"audio/aac",flac:"audio/flac",mp4:"video/mp4",m4v:"video/mp4",webm:"video/webm",mov:"video/quicktime",
  woff:"font/woff",woff2:"font/woff2",ttf:"font/ttf",otf:"font/otf",eot:"application/vnd.ms-fontobject",glb:"model/gltf-binary",gltf:"model/gltf+json",obj:"text/plain; charset=utf-8",mtl:"text/plain; charset=utf-8",ktx:"image/ktx",ktx2:"image/ktx2",basis:"application/octet-stream",hdr:"image/vnd.radiance",exr:"image/aces"
  };
- const headers=new Headers(upstream.headers);headers.set("content-type",types[ext]||upstream.headers.get("content-type")||"application/octet-stream");headers.set("cache-control",ext==="html"||ext==="htm"?"no-cache":"public, max-age=300");headers.set("x-content-type-options","nosniff");headers.set("access-control-allow-origin","*");headers.set("access-control-allow-methods","GET, HEAD, OPTIONS");headers.set("cross-origin-resource-policy","cross-origin");headers.set("x-polaris-community-asset",path);headers.delete("content-disposition");headers.delete("x-frame-options");headers.delete("content-security-policy");
+ const headers=new Headers(upstream.headers);headers.set("content-type",types[ext]||upstream.headers.get("content-type")||"application/octet-stream");headers.set("cache-control",ext==="html"||ext==="htm"?"no-cache":"public, max-age=300");headers.set("x-content-type-options","nosniff");headers.set("x-polaris-community-asset",path);headers.delete("content-disposition");
  return new Response(upstream.body,{status:200,headers});
 }
 
