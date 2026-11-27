@@ -277,10 +277,16 @@ async function renderBrowser(rawUrl){
  catch{root.innerHTML='<div class="empty-state">That address is not valid. Enter a website address or search term in the Polaris address bar.</div>';return}
  state.browserUrl=target.href;saveTabUrl(target.href);
  root.classList.remove("page-enter");
- root.innerHTML='<section class="polaris-browser is-open"><div class="web-browser-frame-wrap"><div class="external-browser-card"><div class="external-browser-icon">↗</div><h2>Website ready to open</h2><p>Polaris opens websites in a separate browser window. This gives the website its own normal browser context instead of embedding it inside Polaris.</p><p class="external-browser-address"></p><button class="button primary" id="open-external-browser" type="button">Open website in new window ↗</button><p class="muted">If nothing happens, allow pop-ups for Polaris. Some browsers may open a new tab instead of a separate window.</p></div></div></section>';
- const address=root.querySelector(".external-browser-address");
- if(address)address.textContent=target.href;
- root.querySelector("#open-external-browser")?.addEventListener("click",()=>openExternalBrowserWindow(target.href));
+ const adapter=window.PolarisBrowserEngine?.getAdapter?.();
+ if(adapter&&typeof adapter.navigate==="function"){
+  root.innerHTML='<section class="polaris-browser is-open"><div class="web-browser-frame-wrap"><div class="external-browser-card"><div class="external-browser-icon">◉</div><h2>Opening website</h2><p class="external-browser-address"></p><p class="muted" id="browser-engine-status">Handing navigation to the registered engine…</p></div></div></section>';
+  root.querySelector(".external-browser-address").textContent=target.href;
+  try{await window.PolarisBrowserEngine.navigate(target.href,{tabId:activeTab()?.id||null});const status=root.querySelector("#browser-engine-status");if(status)status.textContent="Navigation handed to "+(adapter.label||adapter.id)+"."}
+  catch(error){const status=root.querySelector("#browser-engine-status");if(status)status.textContent="Engine error: "+(error?.message||String(error));}
+ }else{
+  root.innerHTML='<section class="polaris-browser is-open"><div class="web-browser-frame-wrap"><div class="external-browser-card"><div class="external-browser-icon">◉</div><h2>No browser engine connected</h2><p class="external-browser-address"></p><p>Polaris has saved this address, but no compatible in-app browser engine is registered.</p><p class="muted">The browser interface and engine runtime are ready for a compatible, authorised adapter.</p></div></div></section>';
+  const address=root.querySelector(".external-browser-address");if(address)address.textContent=target.href;
+ }
  root.classList.add("page-enter");
 }
 async function toolkit(){
