@@ -18,7 +18,7 @@ let browserSettings=getSettings();
 function applyCustomTheme(){const style=document.documentElement.style,custom=browserSettings.customTheme||{},pairs={accent:"--blue",background:"--bg",panel:"--panel",text:"--text",muted:"--muted",border:"--line"};if(browserSettings.theme!=="custom"){for(const variable of Object.values(pairs))style.removeProperty(variable);style.removeProperty("--cyan");style.removeProperty("--accent");style.removeProperty("--panel2");return}for(const [key,variable] of Object.entries(pairs)){const value=custom[key];if(value&&/^#[0-9a-f]{6}$/i.test(value))style.setProperty(variable,value);else style.removeProperty(variable)}if(custom.accent&&/^#[0-9a-f]{6}$/i.test(custom.accent)){style.setProperty("--cyan",custom.accent);style.setProperty("--accent",custom.accent)}else{style.removeProperty("--cyan");style.removeProperty("--accent")}if(custom.panel&&/^#[0-9a-f]{6}$/i.test(custom.panel))style.setProperty("--panel2",custom.panel);else style.removeProperty("--panel2")}
 function updateCustomTheme(key,value){browserSettings.customTheme={...(browserSettings.customTheme||{}),[key]:value};localStorage.setItem("polaris-settings",JSON.stringify(browserSettings));applyCustomTheme()}
 function toolRandomInt(min,max){min=Math.ceil(min);max=Math.floor(max);if(!Number.isFinite(min)||!Number.isFinite(max)||max<min)throw Error("Maximum must be greater than or equal to minimum.");return Math.floor(Math.random()*(max-min+1))+min}
-const state={games:[],version:null,browserController:null,browserFrame:null,browserReady:false,browserMode:"native-iframe",browserUrl:"",onlineCount:0,tabs:[],closedTabs:[],activeTabId:null,settingsCategory:"browser",aiMessages:[]};
+const state={games:[],version:null,browserController:null,browserFrame:null,browserReady:false,browserMode:"adapter",browserUrl:"",onlineCount:0,tabs:[],closedTabs:[],activeTabId:null,settingsCategory:"browser",aiMessages:[]};
 // Keep any previously installed legacy proxy worker from remaining active.
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" })
@@ -38,9 +38,7 @@ function readLibrary(){try{return JSON.parse(localStorage.getItem("polaris-libra
 function shortcut(page,icon,label){return '<a class="shortcut" href="#'+page+'"><span class="shortcut-icon">'+icon+'</span><span>'+label+'</span></a>'}
 function updateClock(){const now=new Date(),time=document.querySelector("#clock-time"),date=document.querySelector("#clock-date");if(!time||!date)return;time.textContent=now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});date.textContent=now.toLocaleDateString([],{weekday:"long",day:"numeric",month:"long"})}
 async function render(page){if(!(page==="settings"&&state.settingsCategory==="experimental")){try{experimentalFrame?.destroy()}catch{}experimentalFrame=null;experimentalRenderer=null}root.classList.remove("page-enter");root.innerHTML='<div class="loading">Loading '+esc(PAGE_NAMES[page])+'…</div>';try{const views={home,browser,games,tools:toolkit,ai,bookmarks:bookmarksPage,history:historyPage,changelog,feedback,settings};root.innerHTML=await views[page]();requestAnimationFrame(()=>root.classList.add("page-enter"));bind(page);if(page==="settings"&&state.settingsCategory==="experimental")bindExperimentalRenderer();revealCards()}catch(e){root.innerHTML=header(PAGE_NAMES[page],"Something went wrong.")+'<div class="empty-state">'+esc(e.message)+'</div>'}}
-function parkActiveBrowserFrame(){const tab=activeTab();const frame=tab?.frameObj?.frame;if(!frame||!frame.isConnected)return;let parking=document.querySelector("#polaris-frame-parking");if(!parking){parking=document.createElement("div");parking.id="polaris-frame-parking";parking.setAttribute("aria-hidden","true");Object.assign(parking.style,{position:"fixed",left:"-10000px",top:"0",width:"1px",height:"1px",overflow:"hidden",visibility:"hidden",pointerEvents:"none",zIndex:"-1"});document.body.append(parking)}parking.append(frame)}
 function navigate(){
- const current=activeTab();if(current?.frameObj?.frame&&location.hash.slice(1)!==(current.route||""))parkActiveBrowserFrame();
  const raw=location.hash.slice(1)||"home",base=raw.split("?")[0],key=base==="play"?"play":base==="browser"?"browser":(PAGE_NAMES[base]?base:"home");
  document.querySelectorAll(".rail-link").forEach(a=>a.classList.toggle("active",a.dataset.page===key));
  document.querySelector(".rail-home").classList.toggle("active",key==="home");
@@ -251,15 +249,6 @@ function saveTabUrl(url){
  let tab=activeTab();
  if(!tab){tab={id:crypto.randomUUID(),title:hostFromUrl(url),url,frameObj:null,loaded:false};state.tabs.push(tab);state.activeTabId=tab.id}
  if(tab.url!==url){tab.url=url;tab.title=hostFromUrl(url);tab.loaded=false;}recordHistory(url,tab.title);renderBrowserTabs();updateBookmarkButton();
-}
-async function ensureBrowserCompatibility(){
- if(state.browserReady&&state.browserController)return;
- if(!window.PolarisLegacyCompat?.createController)throw new Error("The Polaris browser compatibility module did not load. Refresh the page and check /engine/modules/legacy-compat.js.");
- const controller=window.PolarisLegacyCompat.createController();
- await controller.init();
- state.browserController=controller;
- state.browserMode="native-iframe";
- state.browserReady=true;
 }
 function openExternalBrowserWindow(value){
  let target;
