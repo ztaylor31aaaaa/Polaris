@@ -80,7 +80,11 @@ const adapter = {
       canvas,
       renderer,
       url,
-      navigate,
+      async navigate(nextUrl) {
+        const result = await navigate(nextUrl);
+        handle.url = new URL(nextUrl, location.href).href;
+        return result;
+      },
       reload: () => navigate(handle.url),
       destroy() {
         if (disposed) return;
