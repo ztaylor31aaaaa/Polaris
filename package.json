@@ -7,7 +7,8 @@
     "dev": "npm run build && wrangler dev",
     "build": "node scripts/build-static.mjs",
     "deploy": "wrangler deploy",
-    "predeploy": "npm run build"
+    "predeploy": "npm run build",
+    "build:proxy": "npm run build"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
