@@ -26,6 +26,6 @@
     }
   ],
   "build": {
-    "command": "npm run build:proxy"
+    "command": "npm run build"
   }
 }
