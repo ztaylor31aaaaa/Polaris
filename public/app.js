@@ -272,13 +272,13 @@ async function renderBrowser(rawUrl){
  root.classList.remove("page-enter");
  const tab=activeTab();
  const tabId=tab?.id||"";
- root.innerHTML='<section class="polaris-browser is-open"><div class="web-browser-frame-wrap"><div class="web-frame-loading" id="web-frame-loading"><span class="orbit-spinner"></span><span>Starting Scramjet frame…</span></div><div class="web-browser-frame scramjet-frame-host" id="scramjet-frame-host" title="Scramjet website frame"></div></div></section>';
+ root.innerHTML='<section class="polaris-browser is-open"><div class="web-browser-frame-wrap"><div class="web-frame-loading" id="web-frame-loading"><span class="orbit-spinner"></span><span>Starting Polaris renderer…</span></div><div class="web-browser-frame scramjet-frame-host" id="scramjet-frame-host" title="Polaris website renderer"></div></div></section>';
  const host=root.querySelector("#scramjet-frame-host");
  const loading=root.querySelector("#web-frame-loading");
  const showError=message=>{
   if(!host?.isConnected)return;
   loading?.classList.add("is-hidden");
-  host.innerHTML='<div class="external-browser-card browser-fallback-card"><div class="external-browser-icon">!</div><h2>Can’t load this page inside Polaris</h2><p class="external-browser-address"></p><p class="scramjet-error-detail"></p><div class="browser-fallback-actions"><button class="button" id="scramjet-open-external" type="button">Open in browser ↗</button><button class="button button-secondary" id="scramjet-retry" type="button">Retry</button></div><p class="browser-fallback-note">This opens the address in a separate browser tab. Some websites block embedded viewing, and Polaris’s in-app frame engine may be unavailable.</p></div>';
+  host.innerHTML='<div class="external-browser-card browser-fallback-card"><div class="external-browser-icon">!</div><h2>Can’t load this page inside Polaris</h2><p class="external-browser-address"></p><p class="scramjet-error-detail"></p><div class="browser-fallback-actions"><button class="button" id="scramjet-open-external" type="button">Open in browser ↗</button><button class="button button-secondary" id="scramjet-retry" type="button">Retry</button></div><p class="browser-fallback-note">This opens the address in a separate browser tab. Polaris uses standard browser network permissions; some websites cannot be rendered because of CORS or unsupported browser features.</p></div>';
   const address=host.querySelector(".external-browser-address");if(address)address.textContent=target.href;
   const detail=host.querySelector(".scramjet-error-detail");if(detail)detail.textContent=message||"The in-app browser engine is unavailable for this page.";
   host.querySelector("#scramjet-open-external")?.addEventListener("click",()=>openExternalBrowserWindow(target.href));
@@ -295,7 +295,7 @@ async function renderBrowser(rawUrl){
      loading?.classList.add("is-hidden");
      return existing;
     }
-    const result=await engine.navigate(target.href,{container:host,tabId,engine:"scramjet",onReady:()=>loading?.classList.add("is-hidden"),onError:showError});
+    const result=await engine.navigate(target.href,{container:host,tabId,engine:"polaris-renderer",onReady:()=>loading?.classList.add("is-hidden"),onError:showError});
     if(!host.isConnected){result?.destroy?.();return null}
     const handle=result&&typeof result==="object"?result:{};
     tab.frameObj={...handle,host,url:target.href,reload:()=>handle.reload?handle.reload():renderBrowser(target.href),destroy:()=>handle.destroy?.()};
