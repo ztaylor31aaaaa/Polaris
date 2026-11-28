@@ -278,9 +278,10 @@ async function renderBrowser(rawUrl){
  const showError=message=>{
   if(!host?.isConnected)return;
   loading?.classList.add("is-hidden");
-  host.innerHTML='<div class="external-browser-card browser-fallback-card"><div class="external-browser-icon">!</div><h2>Scramjet is not ready</h2><p class="external-browser-address"></p><p class="scramjet-error-detail"></p><button class="button button-secondary" id="scramjet-retry" type="button">Retry</button></div>';
+  host.innerHTML='<div class="external-browser-card browser-fallback-card"><div class="external-browser-icon">!</div><h2>Can’t load this page inside Polaris</h2><p class="external-browser-address"></p><p class="scramjet-error-detail"></p><div class="browser-fallback-actions"><button class="button" id="scramjet-open-external" type="button">Open in browser ↗</button><button class="button button-secondary" id="scramjet-retry" type="button">Retry</button></div><p class="browser-fallback-note">This opens the address in a separate browser tab. Some websites block embedded viewing, and Polaris’s in-app frame engine may be unavailable.</p></div>';
   const address=host.querySelector(".external-browser-address");if(address)address.textContent=target.href;
-  const detail=host.querySelector(".scramjet-error-detail");if(detail)detail.textContent=message||"The Scramjet frame engine is not configured.";
+  const detail=host.querySelector(".scramjet-error-detail");if(detail)detail.textContent=message||"The in-app browser engine is unavailable for this page.";
+  host.querySelector("#scramjet-open-external")?.addEventListener("click",()=>openExternalBrowserWindow(target.href));
   host.querySelector("#scramjet-retry")?.addEventListener("click",()=>renderBrowser(target.href));
  };
  const engine=window.PolarisBrowserEngine;
