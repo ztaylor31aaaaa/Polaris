@@ -4,11 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run build:proxy && wrangler dev",
+    "dev": "npm run build && wrangler dev",
+    "build": "node scripts/build-static.mjs",
     "deploy": "wrangler deploy",
-    "build:proxy": "node scripts/copy-proxy-assets.mjs",
-    "postinstall": "npm run build:proxy",
-    "predeploy": "npm run build:proxy"
+    "predeploy": "npm run build"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
