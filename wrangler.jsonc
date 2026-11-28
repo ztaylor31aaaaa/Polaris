@@ -24,8 +24,5 @@
       "tag": "v1",
       "new_sqlite_classes": ["PolarisState"]
     }
-  ],
-  "build": {
-    "command": "npm run build"
-  }
+  ]
 }
